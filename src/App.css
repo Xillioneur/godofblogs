@@ -98,6 +98,20 @@ body::before {
   align-items: center;
 }
 
+.header-logo-svg {
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+}
+
+.footer-logo-svg {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -293,10 +307,22 @@ body::before {
   display: block;
 }
 
-.word-card .dynamic-word.style-cross {
-  font-size: clamp(8rem, 15vw, 12rem);
-  font-weight: 100;
-  font-family: var(--font-serif);
+.word-card .dynamic-word.style-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gamer-cross-svg {
+  width: clamp(15rem, 25vw, 25rem);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(255,255,255,0.1));
+}
+
+body.dark-mode .gamer-cross-svg {
+  filter: drop-shadow(0 0 30px rgba(255,255,255,0.2));
 }
 
 .scripture-container {
@@ -722,6 +748,74 @@ body.dark-mode .feed-card.featured .card-image {
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+/* --- RELATED REFLECTIONS --- */
+.related-reflections {
+  margin-top: 100px;
+  padding-top: 60px;
+  border-top: 1px solid var(--border-color);
+}
+
+.related-reflections h3 {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  margin-bottom: 40px;
+  opacity: 0.6;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.related-card {
+  cursor: pointer;
+}
+
+.related-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  margin-bottom: 20px;
+  transition: var(--transition-smooth);
+}
+
+.related-card:hover img {
+  transform: translateY(-5px);
+}
+
+.related-card h4 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* --- ACCESSIBILITY --- */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- FOOTER SOCIALS --- */
+.footer-socials {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.social-icon {
+  color: var(--text-main);
+  opacity: 0.6;
+  transition: var(--transition-smooth);
+}
+
+.social-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 /* --- FOOTER --- */
