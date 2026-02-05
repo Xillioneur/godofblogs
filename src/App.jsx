@@ -4,27 +4,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import './App.css'
 import { blogs as blogsData } from './blogsData'
+import AdminDashboard from './AdminDashboard'
 
 // --- HELPER COMPONENTS (Moved outside to prevent re-mounting/focus loss) ---
 
-const Header = ({ isDarkMode, setIsDarkMode, backToList }) => (
-  <header className="professional-header">
-    <div className="header-inner">
-      <div className="brand" onClick={backToList} role="button">
-        <span className="brand-logo">†</span>
-        <span className="brand-name">WILLIE LIWA JOHNSON</span>
-      </div>
-      <nav className="header-nav">
-        <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
-          {isDarkMode ? 'LIGHT MODE' : 'DARK MODE'}
-        </button>
-      </nav>
-    </div>
-  </header>
-);
-
-const GamerCross = () => (
-  <svg className="gamer-cross-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+const GamerCross = ({ className = "gamer-cross-svg" }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     {/* Outer Glow / Halo */}
     <circle cx="50" cy="40" r="35" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" opacity="0.2" />
     
@@ -41,6 +26,22 @@ const GamerCross = () => (
     <path d="M35 35 L44 25" stroke="currentColor" strokeWidth="1" opacity="0.5" />
     <path d="M65 35 L56 25" stroke="currentColor" strokeWidth="1" opacity="0.5" />
   </svg>
+);
+
+const Header = ({ isDarkMode, setIsDarkMode, backToList }) => (
+  <header className="professional-header">
+    <div className="header-inner">
+      <div className="brand" onClick={backToList} role="button">
+        <GamerCross className="header-logo-svg" />
+        <span className="brand-name">WILLIE LIWA JOHNSON</span>
+      </div>
+      <nav className="header-nav">
+        <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
+          {isDarkMode ? 'LIGHT MODE' : 'DARK MODE'}
+        </button>
+      </nav>
+    </div>
+  </header>
 );
 
 const WordStack = () => {
@@ -317,6 +318,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentReadingTime, setCurrentReadingTime] = useState(0);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -384,6 +386,12 @@ function App() {
 
   // Routing
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === 'portal') {
+      setShowAdmin(true);
+      return;
+    }
+
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const blogId = params.get('post');
@@ -399,7 +407,6 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     
     // Check URL on load
-    const params = new URLSearchParams(window.location.search);
     const blogId = params.get('post');
     if (blogId && blogs.length > 0 && !selectedBlog) {
       const blog = blogs.find(b => b.id === blogId);
@@ -563,6 +570,19 @@ function App() {
     window.history.pushState({}, '', url);
     setError(null);
   };
+
+  if (showAdmin) {
+    return (
+      <div className="main-canvas">
+        <AdminDashboard blogs={blogs} onBack={() => {
+          setShowAdmin(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('admin');
+          window.history.pushState({}, '', url);
+        }} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
