@@ -13,7 +13,8 @@ const AdminDashboard = ({ blogs, onBack }) => {
     category: 'GOD',
     summary: '',
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
-    previewImageUrl: 'https://images.unsplash.com/photo-1438109491414-7198515b166b?q=80&w=1200&auto=format&fit=crop'
+    previewImageUrl: '/assets/covers/faith-math.svg',
+    socialImage: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1200&auto=format&fit=crop'
   });
 
   const startNew = () => {
@@ -25,7 +26,8 @@ const AdminDashboard = ({ blogs, onBack }) => {
       category: 'GOD',
       summary: '',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
-      previewImageUrl: 'https://images.unsplash.com/photo-1438109491414-7198515b166b?q=80&w=1200&auto=format&fit=crop'
+      previewImageUrl: '/assets/covers/faith-math.svg',
+      socialImage: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1200&auto=format&fit=crop'
     });
     setContent(`# New Reflection
 
@@ -152,8 +154,12 @@ Begin your journey here...`);
               <textarea value={formData.summary} onChange={e => setFormData({...formData, summary: e.target.value})} rows="2" />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label>Preview Image URL</label>
+              <label>Preview Image URL (SVG/PNG)</label>
               <input type="text" value={formData.previewImageUrl} onChange={e => setFormData({...formData, previewImageUrl: e.target.value})} />
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label>Social Share Image URL (PNG required for X/Reddit)</label>
+              <input type="text" value={formData.socialImage} onChange={e => setFormData({...formData, socialImage: e.target.value})} />
             </div>
           </div>
 

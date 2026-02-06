@@ -582,7 +582,7 @@ function App() {
     const siteUrl = "https://willieliwajohnson.web.app";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
-    const defaultImage = "https://willieliwajohnson.web.app/assets/covers/main-cover.svg";
+    const defaultImage = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format&fit=crop";
 
     if (selectedBlog) {
       const currentUrl = `${siteUrl}/?post=${selectedBlog.id}`;
@@ -590,11 +590,11 @@ function App() {
       updateMetaTag('description', selectedBlog.summary);
       updateMetaTag('og:title', selectedBlog.title);
       updateMetaTag('og:description', selectedBlog.summary);
-      updateMetaTag('og:image', selectedBlog.previewImageUrl);
+      updateMetaTag('og:image', selectedBlog.socialImage || selectedBlog.previewImageUrl);
       updateMetaTag('og:url', currentUrl);
       updateMetaTag('twitter:title', selectedBlog.title);
       updateMetaTag('twitter:description', selectedBlog.summary);
-      updateMetaTag('twitter:image', selectedBlog.previewImageUrl);
+      updateMetaTag('twitter:image', selectedBlog.socialImage || selectedBlog.previewImageUrl);
       updateCanonical(currentUrl);
 
       // Inject JSON-LD
