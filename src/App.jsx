@@ -170,7 +170,7 @@ const HighlightText = ({ text, highlight }) => {
   );
 };
 
-const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle }) => (
+const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle, publicLikes }) => (
   <div className="blog-feed">
     <CategoryTabs 
       activeCategory={activeCategory} 
@@ -266,7 +266,7 @@ const Breadcrumbs = ({ paths }) => (
   </nav>
 );
 
-const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isDarkMode }) => {
+const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isDarkMode, publicLikes }) => {
   const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
   const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
@@ -522,6 +522,7 @@ const AboutView = ({ onBack }) => (
         <div className="reveal" style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid var(--border-color)' }}>
           <h3>CONNECT</h3>
           <p>You can find my latest reflections and updates on the firmament of the social web.</p>
+          <button className="cta-primary" style={{ marginTop: '40px' }} onClick={onBack}>BEGIN THE PILGRIMAGE</button>
         </div>
       </div>
     </div>
@@ -561,6 +562,10 @@ function App() {
   const [showAscend, setShowAscend] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
   const [publicLikes, setPublicLikes] = useState({});
+  const [userLikes, setUserLikes] = useState(() => {
+    const saved = localStorage.getItem('user_likes');
+    return saved ? JSON.parse(saved) : {};
+  });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -911,18 +916,24 @@ function App() {
   };
 
   const handleLike = async (id) => {
+    // Local visual feedback
+    if (userLikes[id]) return; // One like per session/user for now
+    
+    const newUserLikes = { ...userLikes, [id]: true };
+    setUserLikes(newUserLikes);
+    localStorage.setItem('user_likes', JSON.stringify(newUserLikes));
+
+    // Optimistic update
+    setPublicLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+
     try {
       const res = await fetch('http://localhost:3001/api/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      const data = await res.json();
-      if (data.success) {
-        setPublicLikes(prev => ({ ...prev, [id]: data.count }));
-      }
     } catch (e) {
-      console.error("Like failed. Local API may not be running.");
+      console.warn("Server-side like sync unavailable in production. Local persistence active.");
     }
   };
 
@@ -962,6 +973,7 @@ function App() {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 viewArticle={viewArticle}
+                publicLikes={publicLikes}
               />
             </div>
             <div className="reveal">
@@ -989,6 +1001,7 @@ function App() {
             viewArticle={viewArticle}
             onLike={() => handleLike(selectedBlog.id)}
             isDarkMode={isDarkMode}
+            publicLikes={publicLikes}
           />
         )}
       </main>
