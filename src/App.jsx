@@ -28,14 +28,15 @@ const GamerCross = ({ className = "gamer-cross-svg" }) => (
   </svg>
 );
 
-const Header = ({ isDarkMode, setIsDarkMode, backToList }) => (
+const Header = ({ isDarkMode, setIsDarkMode, backToList, onAbout }) => (
   <header className="professional-header">
     <div className="header-inner">
       <div className="brand" onClick={backToList} role="button">
         <GamerCross className="header-logo-svg" />
-        <span className="brand-name">WILLIE LIWA JOHNSON</span>
+        <span className="brand-name">GOD OF BLOGS</span>
       </div>
       <nav className="header-nav">
+        <button className="nav-link" onClick={onAbout}>ABOUT THE AUTHOR</button>
         <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
           {isDarkMode ? 'LIGHT MODE' : 'DARK MODE'}
         </button>
@@ -111,7 +112,13 @@ const Hero = ({ setActiveCategory }) => (
         }}>
           BEGIN THE PILGRIMAGE
         </button>
-        <button className="cta-secondary" onClick={() => setActiveCategory('GOD')}>
+        <button className="cta-secondary" onClick={() => {
+          setActiveCategory('GOD');
+          setTimeout(() => {
+            const feed = document.querySelector('.blog-feed');
+            feed?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}>
           EXPLORE THE DIVINE
         </button>
       </div>
@@ -305,6 +312,93 @@ const Newsletter = () => (
   </section>
 );
 
+const FeaturedScripture = () => (
+  <section className="featured-scripture-section animate-in">
+    <div className="scripture-quote-box">
+      <span className="quote-mark">“</span>
+      <p className="main-quote">For in Him we live and move and have our being.</p>
+      <cite>ACTS 17:28</cite>
+    </div>
+  </section>
+);
+
+const ChronicleOfLight = () => (
+  <section className="chronicle-section animate-in">
+    <div className="section-header">
+      <h2>CHRONICLE OF LIGHT</h2>
+      <p>The evolving digital journey of this sanctuary.</p>
+    </div>
+    <div className="chronicle-list">
+      <div className="update-entry">
+        <div className="update-meta">
+          <span className="update-date">FEB 07</span>
+          <div className="update-dot"></div>
+        </div>
+        <div className="update-content">
+          <h4>PHASE 4: ARCHIVE SOVEREIGNTY</h4>
+          <p>The Admin Portal is now live. We have established a direct bridge between the local editor and the digital archives, ensuring every reflection is permanent and pristine.</p>
+        </div>
+      </div>
+      <div className="update-entry">
+        <div className="update-meta">
+          <span className="update-date">FEB 06</span>
+          <div className="update-dot"></div>
+        </div>
+        <div className="update-content">
+          <h4>PHASE 3: THE GAMER'S CROSS</h4>
+          <p>Unified the platform identity with the new Sword-Cross logo. A modern symbol for an eternal message.</p>
+        </div>
+      </div>
+      <div className="update-entry">
+        <div className="update-meta">
+          <span className="update-date">FEB 05</span>
+          <div className="update-dot"></div>
+        </div>
+        <div className="update-content">
+          <h4>PHASE 2: EDITORIAL MASTERY</h4>
+          <p>Transitioned into a high-end editorial aesthetic. Enhanced SEO, dynamic reading times, and advanced typography are now foundational.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const AboutView = ({ onBack }) => (
+  <div className="article-view animate-in">
+    <div className="article-header">
+      <button className="article-back" onClick={onBack}>← BACK TO JOURNAL</button>
+      <h1 className="article-title">Willie Liwa Johnson</h1>
+      <p className="hero-description" style={{ margin: '0 auto 40px auto' }}>Author, Explorer, and Servant of the Word.</p>
+    </div>
+    
+    <div className="article-hero-image" style={{ height: '60vh' }}>
+      <img src="https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1200&auto=format&fit=crop" alt="The Journey" />
+    </div>
+
+    <div className="article-container">
+      <div className="article-content">
+        <p>
+          Welcome to <strong>God of Blogs</strong>. I am Willie Liwa Johnson, and this sanctuary is dedicated to the exploration of the Divine through the lens of human experience.
+        </p>
+        <h2>The Mission</h2>
+        <p>
+          In a world often fragmented by noise, I seek to build a bridge between logic and faith. Every reflection shared here is a pilgrimage toward clarity, grounded in the absolute truth of the Creator and the transformative power of Love.
+        </p>
+        <blockquote>
+          "To live is to learn the language of the Infinite."
+        </blockquote>
+        <p>
+          Thank you for joining me on this journey. May these words serve as a light on your path, as they have on mine.
+        </p>
+        <div style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid var(--border-color)' }}>
+          <h3>CONNECT</h3>
+          <p>You can find my latest reflections and updates on the firmament of the social web.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 // --- MAIN APP COMPONENT ---
 
 function App() {
@@ -319,6 +413,7 @@ function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentReadingTime, setCurrentReadingTime] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -391,16 +486,32 @@ function App() {
       setShowAdmin(true);
       return;
     }
+    if (params.get('page') === 'about') {
+      setShowAbout(true);
+      setSelectedBlog(null);
+      return;
+    }
 
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const blogId = params.get('post');
-      if (blogId && blogs.length > 0) {
+      const page = params.get('page');
+
+      if (page === 'about') {
+        setShowAbout(true);
+        setSelectedBlog(null);
+      } else if (blogId && blogs.length > 0) {
         const blog = blogs.find(b => b.id === blogId);
-        if (blog) fetchAndSetBlog(blog);
-        else setSelectedBlog(null);
+        if (blog) {
+          fetchAndSetBlog(blog);
+          setShowAbout(false);
+        } else {
+          setSelectedBlog(null);
+          setShowAbout(false);
+        }
       } else {
         setSelectedBlog(null);
+        setShowAbout(false);
       }
     };
 
@@ -562,11 +673,23 @@ function App() {
     }
   };
 
+  const handleAbout = () => {
+    setShowAbout(true);
+    setSelectedBlog(null);
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', 'about');
+    url.searchParams.delete('post');
+    window.history.pushState({ page: 'about' }, '', url);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const backToList = () => {
     setSelectedBlog(null);
+    setShowAbout(false);
     setBlogContent('');
     const url = new URL(window.location.href);
     url.searchParams.delete('post');
+    url.searchParams.delete('page');
     window.history.pushState({}, '', url);
     setError(null);
   };
@@ -591,11 +714,14 @@ function App() {
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode} 
-        backToList={backToList} 
+        backToList={backToList}
+        onAbout={handleAbout}
       />
       
       <main className="main-content">
-        {!selectedBlog ? (
+        {showAbout ? (
+          <AboutView onBack={backToList} />
+        ) : !selectedBlog ? (
           <>
             <Hero setActiveCategory={setActiveCategory} />
             <CategoryTabs 
@@ -610,7 +736,9 @@ function App() {
               searchQuery={searchQuery}
               viewArticle={viewArticle}
             />
+            <FeaturedScripture />
             <MissionSection />
+            <ChronicleOfLight />
             <Newsletter />
           </>
         ) : (

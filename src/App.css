@@ -98,6 +98,24 @@ body::before {
   align-items: center;
 }
 
+.nav-link {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  margin-right: 30px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  transition: var(--transition-smooth);
+}
+
+.nav-link:hover {
+  opacity: 1;
+}
+
 .header-logo-svg {
   width: 32px;
   height: 32px;
@@ -697,6 +715,121 @@ body.dark-mode .feed-card.featured .card-image {
   color: var(--text-secondary);
   line-height: 1.8;
   font-size: 1.05rem;
+}
+
+/* --- FEATURED SCRIPTURE --- */
+.featured-scripture-section {
+  padding: 140px 5%;
+  background: var(--accent);
+  color: var(--primary-bg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.scripture-quote-box {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.quote-mark {
+  font-family: var(--font-serif);
+  font-size: 8rem;
+  opacity: 0.1;
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+}
+
+.main-quote {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-style: italic;
+  line-height: 1.2;
+  margin-bottom: 40px;
+}
+
+.scripture-quote-box cite {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.4em;
+  opacity: 0.6;
+  font-style: normal;
+}
+
+/* --- CHRONICLE SECTION --- */
+.chronicle-section {
+  padding: 120px 5%;
+  background: var(--primary-bg);
+}
+
+.chronicle-list {
+  max-width: 900px;
+  margin: 60px auto 0 auto;
+}
+
+.update-entry {
+  display: flex;
+  gap: 60px;
+  padding-bottom: 60px;
+  position: relative;
+}
+
+.update-entry::after {
+  content: '';
+  position: absolute;
+  left: 104px; /* Align with dot */
+  top: 30px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-color);
+}
+
+.update-entry:last-child::after {
+  display: none;
+}
+
+.update-meta {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  min-width: 140px;
+}
+
+.update-date {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  text-align: right;
+  width: 70px;
+}
+
+.update-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: 0 0 20px var(--accent);
+}
+
+.update-content h4 {
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin-bottom: 15px;
+  letter-spacing: 0.05em;
+}
+
+.update-content p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 1.05rem;
+  max-width: 600px;
 }
 
 /* --- NEWSLETTER SECTION --- */
