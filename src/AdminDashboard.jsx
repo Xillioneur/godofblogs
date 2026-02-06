@@ -1,25 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { db, auth } from './firebase';
+import { collection, getDocs } from "firebase/firestore";
+import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
 const AdminDashboard = ({ blogs, onBack }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [editingBlog, setEditingBlog] = useState(null);
   const [content, setContent] = useState('');
   const [status, setStatus] = useState('');
   const [appStats, setAppStats] = useState({ subscribers: [], likes: {} });
   const [view, setView] = useState('archives'); // 'archives' or 'subscribers'
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('http://localhost:3001/api/admin/stats');
-      const data = await res.json();
-      setAppStats(data);
-    } catch (e) {
-      console.error("Failed to fetch stats");
-    }
-  };
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -32,6 +23,53 @@ const AdminDashboard = ({ blogs, onBack }) => {
     previewImageUrl: '/assets/covers/faith-math.svg',
     socialImage: '/assets/covers/main-cover.png'
   });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+      if (user) {
+        fetchStats();
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login failed:", error);
+      setStatus("Login failed. Check your Firebase console.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      onBack();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const subSnapshot = await getDocs(collection(db, "subscribers"));
+      const subscribers = subSnapshot.docs.map(doc => doc.data());
+      
+      const likeSnapshot = await getDocs(collection(db, "likes"));
+      const likes = {};
+      likeSnapshot.forEach(doc => {
+        likes[doc.id] = doc.data().count;
+      });
+
+      setAppStats({ subscribers, likes });
+    } catch (e) {
+      console.error("Failed to fetch stats from Firestore");
+    }
+  };
 
   const startNew = () => {
     setView('archives');
@@ -127,10 +165,35 @@ Begin your journey here...`);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="admin-dashboard animate-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p className="loading-text">Verifying Authority...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="admin-dashboard animate-in" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', textAlign: 'center' }}>
+        <div className="admin-header">
+          <button className="article-back" onClick={onBack}>← RETURN TO SANCTUARY</button>
+          <h1>ADMIN PORTAL</h1>
+        </div>
+        <p className="hero-description" style={{ marginBottom: '40px' }}>This area is restricted to the guardian of the archives.</p>
+        <button className="cta-primary" onClick={handleLogin}>LOG IN WITH GOOGLE</button>
+        {status && <p className="status-msg" style={{ marginTop: '20px' }}>{status}</p>}
+      </div>
+    );
+  }
+
   return (
     <div className="admin-dashboard animate-in">
       <div className="admin-header">
-        <button className="article-back" onClick={onBack}>← RETURN TO SANCTUARY</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button className="article-back" onClick={onBack}>← RETURN TO SANCTUARY</button>
+          <button className="clear-search" onClick={handleLogout} style={{ fontSize: '0.6rem' }}>LOGOUT</button>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '20px' }}>
           <div>
             <h1>ADMIN PORTAL</h1>

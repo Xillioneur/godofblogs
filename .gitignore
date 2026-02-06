@@ -27,3 +27,8 @@ dist-ssr
 .firebase/
 firebase-debug.log*
 ui-debug.log*
+
+# Secrets
+.env
+.env.local
+.env.*.local

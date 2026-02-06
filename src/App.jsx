@@ -5,6 +5,8 @@ import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/pri
 import './App.css'
 import { blogs as blogsData } from './blogsData'
 import AdminDashboard from './AdminDashboard'
+import { db } from './firebase'
+import { collection, addDoc, doc, updateDoc, increment, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 
 // --- HELPER COMPONENTS (Moved outside to prevent re-mounting/focus loss) ---
 
@@ -158,7 +160,9 @@ const CategoryTabs = ({ activeCategory, setActiveCategory, searchQuery, setSearc
 
 const HighlightText = ({ text, highlight }) => {
   if (!highlight.trim()) return <span>{text}</span>;
-  const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+  // Escape regex special characters to prevent crashes
+  const safeHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${safeHighlight})`, 'gi'));
   return (
     <span>
       {parts.map((part, i) => 
@@ -563,13 +567,21 @@ function App() {
   const [isNotFound, setIsNotFound] = useState(false);
   const [publicLikes, setPublicLikes] = useState({});
   const [userLikes, setUserLikes] = useState(() => {
-    const saved = localStorage.getItem('user_likes');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('user_likes');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'light' ? false : true;
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      return savedTheme === 'light' ? false : true;
+    } catch (e) {
+      return true;
+    }
   });
 
   // Theme Management
@@ -621,18 +633,18 @@ function App() {
       setBlogs(blogsData);
       setFilteredBlogs(blogsData);
     }
-    fetchPublicStats();
-  }, []);
+    
+    // Real-time Likes Sync from Firestore
+    const unsub = onSnapshot(collection(db, "likes"), (snapshot) => {
+      const likesMap = {};
+      snapshot.forEach((doc) => {
+        likesMap[doc.id] = doc.data().count || 0;
+      });
+      setPublicLikes(likesMap);
+    });
 
-  const fetchPublicStats = async () => {
-    try {
-      const res = await fetch('http://localhost:3001/api/stats');
-      const data = await res.json();
-      setPublicLikes(data.likes || {});
-    } catch (e) {
-      console.error("Failed to fetch public stats");
-    }
-  };
+    return () => unsub();
+  }, []);
 
   // Filtering Logic
   useEffect(() => {
@@ -901,17 +913,13 @@ function App() {
 
   const handleSubscribe = async (email) => {
     try {
-      const res = await fetch('http://localhost:3001/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+      await addDoc(collection(db, "subscribers"), {
+        email,
+        date: new Date().toISOString()
       });
-      const data = await res.json();
-      if (data.success) {
-        alert("Welcome to the sanctuary. You will be notified of new reflections.");
-      }
+      alert("Welcome to the sanctuary. You will be notified of new reflections.");
     } catch (e) {
-      console.error("Subscription failed. Local API may not be running.");
+      console.error("Subscription failed:", e);
     }
   };
 
@@ -921,19 +929,26 @@ function App() {
     
     const newUserLikes = { ...userLikes, [id]: true };
     setUserLikes(newUserLikes);
-    localStorage.setItem('user_likes', JSON.stringify(newUserLikes));
+    try {
+      localStorage.setItem('user_likes', JSON.stringify(newUserLikes));
+    } catch (e) {
+      console.warn("Storage restricted.");
+    }
 
     // Optimistic update
     setPublicLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
 
     try {
-      const res = await fetch('http://localhost:3001/api/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
+      const likeRef = doc(db, "likes", id);
+      const likeDoc = await getDoc(likeRef);
+      
+      if (likeDoc.exists()) {
+        await updateDoc(likeRef, { count: increment(1) });
+      } else {
+        await setDoc(likeRef, { count: 1 });
+      }
     } catch (e) {
-      console.warn("Server-side like sync unavailable in production. Local persistence active.");
+      console.error("Like failed:", e);
     }
   };
 

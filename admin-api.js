@@ -17,12 +17,6 @@ app.use(bodyParser.json());
 
 const BLOGS_DATA_PATH = path.join(__dirname, 'src', 'blogsData.js');
 const BLOGS_DIR = path.join(__dirname, 'public', 'blogs');
-const APP_DATA_PATH = path.join(__dirname, 'src', 'appData.json');
-
-// Ensure appData.json exists
-if (!fs.existsSync(APP_DATA_PATH)) {
-  fs.writeFileSync(APP_DATA_PATH, JSON.stringify({ subscribers: [], likes: {} }, null, 2));
-}
 
 // Helper to update blogsData.js
 const updateBlogsDataJS = (blogs) => {
@@ -30,54 +24,6 @@ const updateBlogsDataJS = (blogs) => {
 `;
   fs.writeFileSync(BLOGS_DATA_PATH, content, 'utf8');
 };
-
-// API: Subscribe to Newsletter
-app.post('/api/subscribe', (req, res) => {
-  const { email } = req.body;
-  try {
-    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
-    if (!data.subscribers.some(s => s.email === email)) {
-      data.subscribers.push({ email, date: new Date().toISOString() });
-      fs.writeFileSync(APP_DATA_PATH, JSON.stringify(data, null, 2));
-    }
-    res.json({ success: true, message: 'Welcome to the sanctuary.' });
-  } catch (error) {
-    res.status(500).json({ success: false });
-  }
-});
-
-// API: Like a Post
-app.post('/api/like', (req, res) => {
-  const { id } = req.body;
-  try {
-    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
-    data.likes[id] = (data.likes[id] || 0) + 1;
-    fs.writeFileSync(APP_DATA_PATH, JSON.stringify(data, null, 2));
-    res.json({ success: true, count: data.likes[id] });
-  } catch (error) {
-    res.status(500).json({ success: false });
-  }
-});
-
-// API: Get App Stats (Subscribers & Likes)
-app.get('/api/admin/stats', (req, res) => {
-  try {
-    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ success: false });
-  }
-});
-
-// API: Public Stats (Just Likes)
-app.get('/api/stats', (req, res) => {
-  try {
-    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
-    res.json({ likes: data.likes });
-  } catch (error) {
-    res.status(500).json({ success: false });
-  }
-});
 
 // API: Git Commit
 app.post('/api/admin/git-commit', (req, res) => {
@@ -104,7 +50,6 @@ app.post('/api/save-blog', (req, res) => {
 
     // 2. Update blogsData.js
     const currentData = fs.readFileSync(BLOGS_DATA_PATH, 'utf8');
-    // Simple extraction of the array since it's a JS file
     const match = currentData.match(/export const blogs = (\[[\s\S]*?\]);/);
     let blogs = match ? JSON.parse(match[1]) : [];
 
@@ -112,7 +57,7 @@ app.post('/api/save-blog', (req, res) => {
     if (index !== -1) {
       blogs[index] = { ...blogs[index], ...blog };
     } else {
-      blogs.unshift(blog); // New posts at the top
+      blogs.unshift(blog);
     }
 
     updateBlogsDataJS(blogs);
