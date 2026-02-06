@@ -532,11 +532,14 @@ function App() {
   // Routing
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const pathParts = window.location.pathname.split('/');
+    const pathBlogId = pathParts[1] === 'post' ? pathParts[2] : null;
+
     if (params.get('admin') === 'portal') {
       setShowAdmin(true);
       return;
     }
-    if (params.get('page') === 'about') {
+    if (params.get('page') === 'about' || pathParts[1] === 'about') {
       setShowAbout(true);
       setSelectedBlog(null);
       return;
@@ -544,8 +547,9 @@ function App() {
 
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
-      const blogId = params.get('post');
-      const page = params.get('page');
+      const pathParts = window.location.pathname.split('/');
+      const blogId = params.get('post') || (pathParts[1] === 'post' ? pathParts[2] : null);
+      const page = params.get('page') || (pathParts[1] === 'about' ? 'about' : null);
 
       if (page === 'about') {
         setShowAbout(true);
@@ -568,7 +572,7 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     
     // Check URL on load
-    const blogId = params.get('post');
+    const blogId = params.get('post') || pathBlogId;
     if (blogId && blogs.length > 0 && !selectedBlog) {
       const blog = blogs.find(b => b.id === blogId);
       if (blog) fetchAndSetBlog(blog);
@@ -579,10 +583,10 @@ function App() {
 
   // SEO Update
   useEffect(() => {
-    const siteUrl = "https://willieliwajohnson.web.app";
+    const siteUrl = "https://godofblogs.xyz";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
-    const defaultImage = "https://willieliwajohnson.web.app/assets/covers/main-cover.png";
+    const defaultImage = "https://godofblogs.xyz/assets/covers/main-cover.png";
 
     if (selectedBlog) {
       const currentUrl = `${siteUrl}/?post=${selectedBlog.id}`;
@@ -590,11 +594,11 @@ function App() {
       updateMetaTag('description', selectedBlog.summary);
       updateMetaTag('og:title', selectedBlog.title);
       updateMetaTag('og:description', selectedBlog.summary);
-      updateMetaTag('og:image', selectedBlog.socialImage || selectedBlog.previewImageUrl);
+      updateMetaTag('og:image', selectedBlog.socialImage?.startsWith('http') ? selectedBlog.socialImage : `${siteUrl}${selectedBlog.socialImage || selectedBlog.previewImageUrl}`);
       updateMetaTag('og:url', currentUrl);
       updateMetaTag('twitter:title', selectedBlog.title);
       updateMetaTag('twitter:description', selectedBlog.summary);
-      updateMetaTag('twitter:image', selectedBlog.socialImage || selectedBlog.previewImageUrl);
+      updateMetaTag('twitter:image', selectedBlog.socialImage?.startsWith('http') ? selectedBlog.socialImage : `${siteUrl}${selectedBlog.socialImage || selectedBlog.previewImageUrl}`);
       updateCanonical(currentUrl);
 
       // Inject JSON-LD
@@ -701,14 +705,15 @@ function App() {
 
   const viewArticle = (blog) => {
     const url = new URL(window.location.href);
-    url.searchParams.set('post', blog.id);
+    url.pathname = `/post/${blog.id}`;
+    url.searchParams.delete('post');
     window.history.pushState({ blogId: blog.id }, '', url);
     fetchAndSetBlog(blog);
   };
 
   const shareArticle = (blog) => {
     if (!blog) return;
-    const shareUrl = window.location.origin + window.location.pathname + '?post=' + blog.id;
+    const shareUrl = `${window.location.origin}/post/${blog.id}`;
     const shareText = `Behold: ${blog.title} | Willie Liwa Johnson`;
     
     if (navigator.share) {
@@ -727,7 +732,8 @@ function App() {
     setShowAbout(true);
     setSelectedBlog(null);
     const url = new URL(window.location.href);
-    url.searchParams.set('page', 'about');
+    url.pathname = '/about';
+    url.searchParams.delete('page');
     url.searchParams.delete('post');
     window.history.pushState({ page: 'about' }, '', url);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -737,9 +743,7 @@ function App() {
     setSelectedBlog(null);
     setShowAbout(false);
     setBlogContent('');
-    const url = new URL(window.location.href);
-    url.searchParams.delete('post');
-    url.searchParams.delete('page');
+    const url = new URL(window.location.origin);
     window.history.pushState({}, '', url);
     setError(null);
   };
