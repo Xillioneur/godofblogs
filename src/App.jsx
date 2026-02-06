@@ -6,7 +6,7 @@ import './App.css'
 import { blogs as blogsData } from './blogsData'
 import AdminDashboard from './AdminDashboard'
 import { db } from './firebase'
-import { collection, addDoc, doc, updateDoc, increment, getDoc, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, increment, getDoc, onSnapshot, setDoc, query, where, getDocs } from "firebase/firestore";
 
 // --- HELPER COMPONENTS ---
 
@@ -230,8 +230,11 @@ const FloatingSacredCTA = ({ show, onLike, isLiked }) => (
   <div className={`floating-cta ${show ? 'visible' : ''}`}>
     <span className="cta-text">JOIN THE SANCTUARY</span>
     <div className="cta-actions">
-      <button className={`icon-btn ${isLiked ? 'active' : ''}`} title="Like Reflection" onClick={onLike}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <button className={`icon-btn ${isLiked > 0 ? 'active' : ''}`} title="Like Reflection" onClick={onLike}>
+        <div style={{ position: 'relative' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          {isLiked > 0 && <span style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '10px', background: '#fff', color: '#ff3b30', borderRadius: '50%', padding: '2px 5px', fontWeight: '900' }}>{isLiked}</span>}
+        </div>
       </button>
       <button className="icon-btn" title="Subscribe RSS" onClick={() => window.open('/feed.xml', '_blank')}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
@@ -261,8 +264,35 @@ const Breadcrumbs = ({ paths }) => (
   </nav>
 );
 
+const CommunityPulse = ({ likes, subscriberCount }) => (
+  <section className="community-pulse reveal">
+    <div className="mission-header">
+      <h2>COMMUNITY PULSE</h2>
+      <p>The collective spirit of those who seek the Word.</p>
+    </div>
+    <div className="pulse-grid">
+      <div className="pulse-item">
+        <span className="pulse-value">{Object.values(likes).reduce((a, b) => a + b, 0)}</span>
+        <span className="pulse-label">APPRECIATIONS</span>
+      </div>
+      <div className="pulse-item">
+        <span className="pulse-value">{subscriberCount}</span>
+        <span className="pulse-label">SOULS JOINED</span>
+      </div>
+    </div>
+  </section>
+);
+
 const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isLiked, isDarkMode, publicLikes }) => {
   if (!selectedBlog) return null;
+  const [zenMode, setZenMode] = useState(false);
+
+  useEffect(() => {
+    if (zenMode) document.body.classList.add('zen-mode');
+    else document.body.classList.remove('zen-mode');
+    return () => document.body.classList.remove('zen-mode');
+  }, [zenMode]);
+
   const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
   const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
@@ -273,6 +303,9 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
 
   return (
     <article className="article-view animate-in">
+      <button className="zen-toggle" onClick={() => setZenMode(!zenMode)}>
+        {zenMode ? 'EXIT ZEN MODE' : 'ZEN MODE'}
+      </button>
       <div className="article-header">
         <Breadcrumbs paths={[
           { label: selectedBlog.category, url: `/post/${selectedBlog.id}` }, // Adjusted for path logic
@@ -301,8 +334,11 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
           <button className="sidebar-btn" onClick={() => shareArticle(selectedBlog)} title="Share">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           </button>
-          <button className={`sidebar-btn ${isLiked ? 'active' : ''}`} onClick={onLike} title="Sacred Appreciation">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <button className={`sidebar-btn ${isLiked > 0 ? 'active' : ''}`} onClick={onLike} title="Sacred Appreciation">
+            <div style={{ position: 'relative' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              {isLiked > 0 && <span style={{ position: 'absolute', top: '-15px', right: '-15px', fontSize: '10px', background: '#ff3b30', color: '#fff', borderRadius: '50%', padding: '2px 6px', fontWeight: '900' }}>{isLiked}</span>}
+            </div>
           </button>
           <button className="sidebar-btn" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Back to top">
             ↑
@@ -566,6 +602,7 @@ function App() {
   const [showAscend, setShowAscend] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
   const [publicLikes, setPublicLikes] = useState({});
+  const [subscriberCount, setSubscriberCount] = useState(0);
   const [userLikes, setUserLikes] = useState(() => {
     try {
       const saved = localStorage.getItem('user_likes');
@@ -632,14 +669,22 @@ function App() {
     
     // Real-time Likes Sync from Firestore
     try {
-      const unsub = onSnapshot(collection(db, "likes"), (snapshot) => {
+      const unsubLikes = onSnapshot(collection(db, "likes"), (snapshot) => {
         const likesMap = {};
         snapshot.forEach((doc) => {
           likesMap[doc.id] = doc.data().count || 0;
         });
         setPublicLikes(likesMap);
       });
-      return () => unsub();
+
+      const unsubSubs = onSnapshot(collection(db, "subscribers"), (snapshot) => {
+        setSubscriberCount(snapshot.size);
+      });
+
+      return () => {
+        unsubLikes();
+        unsubSubs();
+      };
     } catch (e) {
       console.warn("Firestore sync unavailable.");
     }
@@ -891,17 +936,35 @@ function App() {
 
   const handleSubscribe = async (email) => {
     try {
+      const q = query(collection(db, "subscribers"), where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        alert("Your soul is already part of the sanctuary.");
+        return true; // Consider it a success as they are already subscribed
+      }
+
       await addDoc(collection(db, "subscribers"), { email, date: new Date().toISOString() });
       return true;
-    } catch (e) { return false; }
+    } catch (e) { 
+      console.error("Subscription failed:", e);
+      return false; 
+    }
   };
 
   const handleLike = async (id) => {
-    if (userLikes[id]) return;
-    const newUserLikes = { ...userLikes, [id]: true };
+    const currentCount = userLikes[id] || 0;
+    if (currentCount >= 10) {
+      alert("You have reached the limit of sacred appreciation for this reflection.");
+      return;
+    }
+    
+    const newUserLikes = { ...userLikes, [id]: currentCount + 1 };
     setUserLikes(newUserLikes);
     try { localStorage.setItem('user_likes', JSON.stringify(newUserLikes)); } catch (e) {}
+    
     setPublicLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+    
     try {
       const likeRef = doc(db, "likes", id);
       const likeDoc = await getDoc(likeRef);
@@ -927,8 +990,13 @@ function App() {
             <div className="reveal">
               <BlogFeed filteredBlogs={filteredBlogs} activeCategory={activeCategory} setActiveCategory={setActiveCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewArticle={viewArticle} publicLikes={publicLikes} />
             </div>
-            <div className="reveal"><FeaturedScripture /></div>
-            <div className="reveal"><MissionSection /></div>
+                        <div className="reveal">
+                          <FeaturedScripture />
+                        </div>
+                        <CommunityPulse likes={publicLikes} subscriberCount={subscriberCount} />
+                        <div className="reveal">
+                          <MissionSection />
+                        </div>
             <div className="reveal"><ChronicleOfLight /></div>
             <div className="reveal"><Newsletter onSubscribe={handleSubscribe} /></div>
           </>

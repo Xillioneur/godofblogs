@@ -11,6 +11,15 @@ const AdminDashboard = ({ blogs, onBack }) => {
   const [status, setStatus] = useState('');
   const [appStats, setAppStats] = useState({ subscribers: [], likes: {} });
   const [view, setView] = useState('archives'); // 'archives' or 'subscribers'
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    const words = content.trim().split(/\s+/).length;
+    setWordCount(content.trim() === '' ? 0 : words);
+    if (editingBlog) {
+      localStorage.setItem(`draft_${editingBlog.id}`, content);
+    }
+  }, [content, editingBlog]);
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -96,6 +105,14 @@ Begin your journey here...`);
       ...blog,
       author: blog.author || 'Willie Liwa Johnson'
     });
+    
+    // Check for local draft first
+    const localDraft = localStorage.getItem(`draft_${blog.id}`);
+    if (localDraft && window.confirm("A local draft was found for this reflection. Would you like to restore it?")) {
+      setContent(localDraft);
+      return;
+    }
+
     try {
       const res = await fetch(`http://localhost:3001/api/get-markdown/${blog.id}`);
       const text = await res.text();
@@ -317,16 +334,18 @@ Begin your journey here...`);
                 </div>
               </div>
 
-              <div className="markdown-editor-container">
-                <label>Markdown Content</label>
-                <textarea 
-                  className="markdown-textarea" 
-                  value={content} 
-                  onChange={e => setContent(e.target.value)} 
-                  placeholder="# Write your reflection..."
-                />
-              </div>
-
+                        <div className="markdown-editor-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label>Markdown Content</label>
+                            <span className="nav-label" style={{ opacity: 0.5 }}>{wordCount} WORDS • {Math.ceil(wordCount / 200)} MIN READ</span>
+                          </div>
+                          <textarea 
+                            className="markdown-textarea" 
+                            value={content} 
+                            onChange={e => setContent(e.target.value)} 
+                            placeholder="# Write your reflection..."
+                          />
+                        </div>
               <div className="admin-actions">
                 <div className="status-msg">{status}</div>
                 <div className="admin-action-buttons">
