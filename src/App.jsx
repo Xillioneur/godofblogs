@@ -175,6 +175,7 @@ const BlogFeed = ({ filteredBlogs, activeCategory, searchQuery, viewArticle }) =
               <div className="card-body">
                 <div className="card-meta">
                   <time className="card-date">{blog.date}</time>
+                  <span className="card-author">BY {blog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
                   <span className="card-reading-time">4 MIN READ</span>
                 </div>
                 {isFeatured && <span className="card-category">{blog.category}</span>}
@@ -206,6 +207,7 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
         <div className="article-meta">
           <span className="article-category">{selectedBlog?.category}</span>
           <time>{selectedBlog?.date}</time>
+          <span className="article-author">BY {selectedBlog?.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
           <span className="reading-time">{currentReadingTime} MIN READ</span>
         </div>
         <h1 className="article-title">{selectedBlog?.title}</h1>

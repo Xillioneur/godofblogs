@@ -9,6 +9,7 @@ const AdminDashboard = ({ blogs, onBack }) => {
   const [formData, setFormData] = useState({
     id: '',
     title: '',
+    author: 'Willie Liwa Johnson',
     category: 'GOD',
     summary: '',
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
@@ -20,6 +21,7 @@ const AdminDashboard = ({ blogs, onBack }) => {
     setFormData({
       id: '',
       title: '',
+      author: 'Willie Liwa Johnson',
       category: 'GOD',
       summary: '',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
@@ -32,7 +34,10 @@ Begin your journey here...`);
 
   const editPost = async (blog) => {
     setEditingBlog(blog);
-    setFormData(blog);
+    setFormData({
+      ...blog,
+      author: blog.author || 'Willie Liwa Johnson'
+    });
     try {
       const res = await fetch(`http://localhost:3001/api/get-markdown/${blog.id}`);
       const text = await res.text();
@@ -125,6 +130,10 @@ Begin your journey here...`);
             <div className="form-group">
               <label>Title</label>
               <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Author</label>
+              <input type="text" value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Category</label>

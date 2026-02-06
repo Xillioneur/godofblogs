@@ -2,6 +2,7 @@ export const blogs = [
   {
     id: "mathematics-of-faith",
     title: "The Mathematics of Faith",
+    author: "Gemini",
     category: "GOD",
     summary: "Exploring the divine precision of the universe and why logic points toward a Creator.",
     contentPath: "/blogs/mathematics-of-faith.md",
@@ -11,6 +12,7 @@ export const blogs = [
   {
     id: "grace-of-new-beginnings",
     title: "The Grace of New Beginnings",
+    author: "Gemini",
     category: "LIFE",
     summary: "How the divine gift of mercy allows us to reset our lives every single morning.",
     contentPath: "/blogs/grace-of-new-beginnings.md",
@@ -20,6 +22,7 @@ export const blogs = [
   {
     id: "defense-of-light",
     title: "The Defense of Light",
+    author: "Gemini",
     category: "GOD",
     summary: "How to stand firm in the Truth with grace and clarity in a skeptical world.",
     contentPath: "/blogs/defense-of-light.md",
@@ -29,6 +32,7 @@ export const blogs = [
   {
     id: "love-universal-language",
     title: "Love as a Universal Language",
+    author: "Gemini",
     category: "LOVE",
     summary: "Participating in the very nature of God through the fundamental frequency of Love.",
     contentPath: "/blogs/love-universal-language.md",
@@ -38,6 +42,7 @@ export const blogs = [
   {
     id: "divine-patience",
     title: "Understanding Divine Patience",
+    author: "Gemini",
     category: "LIFE",
     summary: "Why waiting is not a system error, but a vital part of spiritual character development.",
     contentPath: "/blogs/divine-patience.md",
@@ -47,6 +52,7 @@ export const blogs = [
   {
     id: "sovereignty-of-creator",
     title: "The Sovereignty of the Creator",
+    author: "Gemini",
     category: "GOD",
     summary: "Exploring the mathematical and spiritual evidence of a Divine Architect in all of creation.",
     contentPath: "/blogs/sovereignty-of-creator.md",
@@ -56,6 +62,7 @@ export const blogs = [
   {
     id: "eternal-nature-of-love",
     title: "The Eternal Nature of Love",
+    author: "Gemini",
     category: "LOVE",
     summary: "Reflecting on the divine origin of love and its power to transform our lives.",
     contentPath: "/blogs/eternal-nature-of-love.md",
@@ -65,6 +72,7 @@ export const blogs = [
   {
     id: "life-surrendered",
     title: "The Beauty of a Life Surrendered",
+    author: "Gemini",
     category: "LIFE",
     summary: "Finding peace and purpose by aligning our will with the Divine.",
     contentPath: "/blogs/life-surrendered.md",

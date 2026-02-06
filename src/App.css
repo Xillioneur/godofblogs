@@ -445,6 +445,17 @@ body.dark-mode .gamer-cross-svg {
   letter-spacing: 0.1em;
 }
 
+.card-author, .article-author {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+}
+
+.article-author {
+  margin: 0 20px;
+}
+
 .reading-time {
   opacity: 0.5;
   margin-left: 20px;
