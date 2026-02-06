@@ -7,7 +7,7 @@ export const blogs = [
     summary: "Exploring the divine precision of the universe and why logic points toward a Creator.",
     contentPath: "/blogs/mathematics-of-faith.md",
     date: "FEB 07, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/faith-math.svg"
   },
   {
     id: "grace-of-new-beginnings",
@@ -17,7 +17,7 @@ export const blogs = [
     summary: "How the divine gift of mercy allows us to reset our lives every single morning.",
     contentPath: "/blogs/grace-of-new-beginnings.md",
     date: "FEB 07, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/new-beginnings.svg"
   },
   {
     id: "defense-of-light",
@@ -27,7 +27,7 @@ export const blogs = [
     summary: "How to stand firm in the Truth with grace and clarity in a skeptical world.",
     contentPath: "/blogs/defense-of-light.md",
     date: "FEB 06, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/defense-light.svg"
   },
   {
     id: "love-universal-language",
@@ -37,7 +37,7 @@ export const blogs = [
     summary: "Participating in the very nature of God through the fundamental frequency of Love.",
     contentPath: "/blogs/love-universal-language.md",
     date: "FEB 06, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/love-language.svg"
   },
   {
     id: "divine-patience",
@@ -47,7 +47,7 @@ export const blogs = [
     summary: "Why waiting is not a system error, but a vital part of spiritual character development.",
     contentPath: "/blogs/divine-patience.md",
     date: "FEB 05, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1490730141103-6ca27497640c?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/patience.svg"
   },
   {
     id: "sovereignty-of-creator",
@@ -57,7 +57,7 @@ export const blogs = [
     summary: "Exploring the mathematical and spiritual evidence of a Divine Architect in all of creation.",
     contentPath: "/blogs/sovereignty-of-creator.md",
     date: "FEB 05, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1464802686167-b939a67e06a1?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/sovereignty.svg"
   },
   {
     id: "eternal-nature-of-love",
@@ -67,7 +67,7 @@ export const blogs = [
     summary: "Reflecting on the divine origin of love and its power to transform our lives.",
     contentPath: "/blogs/eternal-nature-of-love.md",
     date: "FEB 05, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1516589174184-c685ca33324f?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/eternal-love.svg"
   },
   {
     id: "life-surrendered",
@@ -77,6 +77,6 @@ export const blogs = [
     summary: "Finding peace and purpose by aligning our will with the Divine.",
     contentPath: "/blogs/life-surrendered.md",
     date: "FEB 04, 2026",
-    previewImageUrl: "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?q=80&w=800&auto=format&fit=crop"
+    previewImageUrl: "/assets/covers/surrendered.svg"
   }
 ];

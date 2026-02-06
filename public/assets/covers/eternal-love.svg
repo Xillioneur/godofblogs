@@ -1,0 +1,5 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#000" />
+  <path d="M300 250 Q300 150 400 250 T500 250 Q500 350 400 250 T300 250" fill="none" stroke="white" stroke-width="1" opacity="0.4" />
+  <path d="M400 180 V320 M360 250 H440" stroke="white" stroke-width="0.5" opacity="0.3" />
+</svg>

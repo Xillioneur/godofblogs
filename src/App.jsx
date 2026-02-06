@@ -196,6 +196,10 @@ const BlogFeed = ({ filteredBlogs, activeCategory, searchQuery, viewArticle }) =
 );
 
 const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, isDarkMode }) => {
+  const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
+  const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
+  const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
+
   const related = blogs
     .filter(b => b.id !== selectedBlog.id && b.category === selectedBlog.category)
     .slice(0, 2);
@@ -255,6 +259,22 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
                 {blogContent}
               </ReactMarkdown>
               
+              <div className="post-navigation">
+                {prevPost ? (
+                  <div className="nav-item prev" onClick={() => viewArticle(prevPost)}>
+                    <span className="nav-label">PREVIOUS REFLECTION</span>
+                    <h4 className="nav-title">{prevPost.title}</h4>
+                  </div>
+                ) : <div className="nav-item prev disabled"></div>}
+                
+                {nextPost ? (
+                  <div className="nav-item next" onClick={() => viewArticle(nextPost)}>
+                    <span className="nav-label">NEXT REFLECTION</span>
+                    <h4 className="nav-title">{nextPost.title}</h4>
+                  </div>
+                ) : <div className="nav-item next disabled"></div>}
+              </div>
+
               {related.length > 0 && (
                 <div className="related-reflections">
                   <h3>CONTINUE THE JOURNEY</h3>
@@ -374,25 +394,33 @@ const AboutView = ({ onBack }) => (
     </div>
     
     <div className="article-hero-image" style={{ height: '60vh' }}>
-      <img src="https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1200&auto=format&fit=crop" alt="The Journey" />
+      <img src="/assets/covers/author.svg" alt="The Journey" />
     </div>
 
     <div className="article-container">
       <div className="article-content">
-        <p>
-          Welcome to <strong>God of Blogs</strong>. I am Willie Liwa Johnson, and this sanctuary is dedicated to the exploration of the Divine through the lens of human experience.
-        </p>
-        <h2>The Mission</h2>
-        <p>
-          In a world often fragmented by noise, I seek to build a bridge between logic and faith. Every reflection shared here is a pilgrimage toward clarity, grounded in the absolute truth of the Creator and the transformative power of Love.
-        </p>
-        <blockquote>
-          "To live is to learn the language of the Infinite."
-        </blockquote>
-        <p>
-          Thank you for joining me on this journey. May these words serve as a light on your path, as they have on mine.
-        </p>
-        <div style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid var(--border-color)' }}>
+        <div className="reveal">
+          <p>
+            Welcome to <strong>God of Blogs</strong>. I am Willie Liwa Johnson, and this sanctuary is dedicated to the exploration of the Divine through the lens of human experience.
+          </p>
+        </div>
+        <div className="reveal">
+          <h2>The Mission</h2>
+          <p>
+            In a world often fragmented by noise, I seek to build a bridge between logic and faith. Every reflection shared here is a pilgrimage toward clarity, grounded in the absolute truth of the Creator and the transformative power of Love.
+          </p>
+        </div>
+        <div className="reveal">
+          <blockquote>
+            "To live is to learn the language of the Infinite."
+          </blockquote>
+        </div>
+        <div className="reveal">
+          <p>
+            Thank you for joining me on this journey. May these words serve as a light on your path, as they have on mine.
+          </p>
+        </div>
+        <div className="reveal" style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid var(--border-color)' }}>
           <h3>CONNECT</h3>
           <p>You can find my latest reflections and updates on the firmament of the social web.</p>
         </div>
@@ -416,6 +444,7 @@ function App() {
   const [currentReadingTime, setCurrentReadingTime] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showAscend, setShowAscend] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -435,16 +464,35 @@ function App() {
     }
   }, [isDarkMode]);
 
-  // Scroll Progress
+  // Scroll Progress & Ascend
   useEffect(() => {
     const handleScroll = () => {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const progress = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
       setScrollProgress(progress);
+      setShowAscend(window.scrollY > 800);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Scroll Reveal Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    const revealedElements = document.querySelectorAll('.reveal');
+    revealedElements.forEach(el => observer.observe(el));
+
+    return () => {
+      revealedElements.forEach(el => observer.unobserve(el));
+    };
+  }, [selectedBlog, showAbout, filteredBlogs]);
 
   // Initial Data Load
   useEffect(() => {
@@ -534,7 +582,7 @@ function App() {
     const siteUrl = "https://willieliwajohnson.web.app";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
-    const defaultImage = "https://images.unsplash.com/photo-1438109491414-7198515b166b?q=80&w=1200&auto=format&fit=crop";
+    const defaultImage = "https://willieliwajohnson.web.app/assets/covers/main-cover.svg";
 
     if (selectedBlog) {
       const currentUrl = `${siteUrl}/?post=${selectedBlog.id}`;
@@ -713,6 +761,10 @@ function App() {
     <div className="app-container">
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }}></div>
       
+      <button className={`ascend-btn ${showAscend ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Ascend">
+        ↑
+      </button>
+
       <Header 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode} 
@@ -732,16 +784,26 @@ function App() {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
-            <BlogFeed 
-              filteredBlogs={filteredBlogs}
-              activeCategory={activeCategory}
-              searchQuery={searchQuery}
-              viewArticle={viewArticle}
-            />
-            <FeaturedScripture />
-            <MissionSection />
-            <ChronicleOfLight />
-            <Newsletter />
+            <div className="reveal">
+              <BlogFeed 
+                filteredBlogs={filteredBlogs}
+                activeCategory={activeCategory}
+                searchQuery={searchQuery}
+                viewArticle={viewArticle}
+              />
+            </div>
+            <div className="reveal">
+              <FeaturedScripture />
+            </div>
+            <div className="reveal">
+              <MissionSection />
+            </div>
+            <div className="reveal">
+              <ChronicleOfLight />
+            </div>
+            <div className="reveal">
+              <Newsletter />
+            </div>
           </>
         ) : (
           <ArticleView 
