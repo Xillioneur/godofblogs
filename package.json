@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node generate-sitemap.js && node render-visuals.js && vite",
+    "dev": "node generate-sitemap.js && node generate-rss.js && node render-visuals.js && vite",
     "admin": "node admin-api.js",
     "render": "node render-visuals.js",
-    "prebuild": "node generate-sitemap.js && node render-visuals.js",
+    "prebuild": "node generate-sitemap.js && node generate-rss.js && node render-visuals.js",
     "postbuild": "node generate-seo-pages.js",
     "build": "vite build",
     "lint": "eslint .",

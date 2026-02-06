@@ -156,8 +156,22 @@ const CategoryTabs = ({ activeCategory, setActiveCategory, searchQuery, setSearc
   );
 };
 
-const BlogFeed = ({ filteredBlogs, activeCategory, searchQuery, viewArticle }) => (
+const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle }) => (
   <div className="blog-feed">
+    <CategoryTabs 
+      activeCategory={activeCategory} 
+      setActiveCategory={setActiveCategory} 
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+    />
+
+    {searchQuery && (
+      <div className="search-results-info">
+        <span className="results-count">{filteredBlogs.length} REFLECTIONS FOUND FOR "{searchQuery.toUpperCase()}"</span>
+        <button className="clear-search" onClick={() => setSearchQuery('')}>CLEAR SEARCH</button>
+      </div>
+    )}
+
     <div className="feed-grid">
       {filteredBlogs.length > 0 ? (
         filteredBlogs.map((blog, index) => {
@@ -187,10 +201,29 @@ const BlogFeed = ({ filteredBlogs, activeCategory, searchQuery, viewArticle }) =
           );
         })
       ) : (
-        <div style={{ gridColumn: 'span 12', textAlign: 'center', padding: '100px 0', opacity: 0.5 }}>
-          No reflections found in this category.
+        <div className="no-results">
+          <h3>No reflections found in the current archives.</h3>
+          <p>Try searching for a different word or explore another category.</p>
+          <button className="cta-secondary" style={{ marginTop: '20px' }} onClick={() => { setSearchQuery(''); setActiveCategory('ALL'); }}>VIEW ALL ARCHIVES</button>
         </div>
       )}
+    </div>
+  </div>
+);
+
+const FloatingSacredCTA = ({ show }) => (
+  <div className={`floating-cta ${show ? 'visible' : ''}`}>
+    <span className="cta-text">JOIN THE SANCTUARY</span>
+    <div className="cta-actions">
+      <button className="icon-btn" title="Like Reflection" onClick={() => alert("Peace be with you. Your appreciation is noted.")}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button className="icon-btn" title="Subscribe RSS" onClick={() => window.open('/feed.xml', '_blank')}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+      </button>
+      <button className="icon-btn" title="Divine Letter" onClick={() => document.querySelector('.newsletter-section')?.scrollIntoView({ behavior: 'smooth' })}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </button>
     </div>
   </div>
 );
@@ -229,9 +262,15 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
           <button className="sidebar-btn" onClick={() => shareArticle(selectedBlog)} title="Share">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           </button>
+          <button className="sidebar-btn" onClick={() => alert("Peace be with you. Your appreciation is noted.")} title="Sacred Appreciation">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
           <button className="sidebar-btn" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Back to top">
             ↑
           </button>
+          <a href="/feed.xml" className="sidebar-btn" title="RSS Feed" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+          </a>
         </div>
         <div className="article-content">
           {isLoading ? (
@@ -429,6 +468,21 @@ const AboutView = ({ onBack }) => (
   </div>
 );
 
+const NotFoundView = ({ onBack }) => (
+  <div className="article-view animate-in">
+    <div className="article-header">
+      <h1 className="article-title">Lost in the Void</h1>
+      <p className="hero-description">This path is not yet written in the archives.</p>
+      <button className="cta-primary" style={{ marginTop: '40px' }} onClick={onBack}>RETURN TO THE ARCHIVE</button>
+    </div>
+    <div className="hero-visual" style={{ margin: '80px auto', maxWidth: '400px' }}>
+      <div className="visual-inner">
+        <span style={{ fontSize: '10rem', opacity: 0.1 }}>?</span>
+      </div>
+    </div>
+  </div>
+);
+
 // --- MAIN APP COMPONENT ---
 
 function App() {
@@ -445,6 +499,7 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showAscend, setShowAscend] = useState(false);
+  const [isNotFound, setIsNotFound] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -554,18 +609,22 @@ function App() {
       if (page === 'about') {
         setShowAbout(true);
         setSelectedBlog(null);
+        setIsNotFound(false);
       } else if (blogId && blogs.length > 0) {
         const blog = blogs.find(b => b.id === blogId);
         if (blog) {
           fetchAndSetBlog(blog);
           setShowAbout(false);
+          setIsNotFound(false);
         } else {
           setSelectedBlog(null);
           setShowAbout(false);
+          setIsNotFound(true);
         }
       } else {
         setSelectedBlog(null);
         setShowAbout(false);
+        setIsNotFound(false);
       }
     };
 
@@ -576,6 +635,7 @@ function App() {
     if (blogId && blogs.length > 0 && !selectedBlog) {
       const blog = blogs.find(b => b.id === blogId);
       if (blog) fetchAndSetBlog(blog);
+      else setIsNotFound(true);
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
@@ -742,6 +802,7 @@ function App() {
   const backToList = () => {
     setSelectedBlog(null);
     setShowAbout(false);
+    setIsNotFound(false);
     setBlogContent('');
     const url = new URL(window.location.origin);
     window.history.pushState({}, '', url);
@@ -765,6 +826,8 @@ function App() {
     <div className="app-container">
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }}></div>
       
+      <FloatingSacredCTA show={showAscend && !selectedBlog} />
+
       <button className={`ascend-btn ${showAscend ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Ascend">
         ↑
       </button>
@@ -777,22 +840,20 @@ function App() {
       />
       
       <main className="main-content">
-        {showAbout ? (
+        {isNotFound ? (
+          <NotFoundView onBack={backToList} />
+        ) : showAbout ? (
           <AboutView onBack={backToList} />
         ) : !selectedBlog ? (
           <>
             <Hero setActiveCategory={setActiveCategory} />
-            <CategoryTabs 
-              activeCategory={activeCategory} 
-              setActiveCategory={setActiveCategory} 
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-            />
             <div className="reveal">
               <BlogFeed 
                 filteredBlogs={filteredBlogs}
                 activeCategory={activeCategory}
+                setActiveCategory={setActiveCategory}
                 searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
                 viewArticle={viewArticle}
               />
             </div>
@@ -849,6 +910,12 @@ function App() {
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('GOD'); }}>God</a></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('LIFE'); }}>Life</a></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('LOVE'); }}>Love</a></li>
+              <li>
+                <a href="/feed.xml" className="rss-link-item" target="_blank">
+                  <svg className="rss-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+                  RSS FEED
+                </a>
+              </li>
             </ul>
           </div>
           <div className="footer-links">
