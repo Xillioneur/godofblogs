@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://willieliwajohnson.web.app/sitemap.xml
+Sitemap: https://willieliwajohnson.web.app/sitemap-0.xml
