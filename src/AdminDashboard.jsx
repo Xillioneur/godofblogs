@@ -4,6 +4,22 @@ const AdminDashboard = ({ blogs, onBack }) => {
   const [editingBlog, setEditingBlog] = useState(null);
   const [content, setContent] = useState('');
   const [status, setStatus] = useState('');
+  const [appStats, setAppStats] = useState({ subscribers: [], likes: {} });
+  const [view, setView] = useState('archives'); // 'archives' or 'subscribers'
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/admin/stats');
+      const data = await res.json();
+      setAppStats(data);
+    } catch (e) {
+      console.error("Failed to fetch stats");
+    }
+  };
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -18,6 +34,7 @@ const AdminDashboard = ({ blogs, onBack }) => {
   });
 
   const startNew = () => {
+    setView('archives');
     setEditingBlog(null);
     setFormData({
       id: '',
@@ -35,6 +52,7 @@ Begin your journey here...`);
   };
 
   const editPost = async (blog) => {
+    setView('archives');
     setEditingBlog(blog);
     setFormData({
       ...blog,
@@ -62,34 +80,9 @@ Begin your journey here...`);
       });
       const data = await res.json();
       if (data.success) {
-        setStatus('Archived successfully. Please restart dev server if changes do not appear.');
-        setTimeout(() => {
-          window.location.reload(); // Reload to pick up new blogsData.js
-        }, 1500);
-      } else {
-        setStatus('Error: ' + data.message);
-      }
-    } catch (e) {
-      setStatus('Connection to Admin API failed. Ensure "node admin-api.js" is running.');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm(`Are you certain you wish to purge "${editingBlog.title}" from the archives? This action is irreversible.`)) {
-      return;
-    }
-
-    setStatus('Purging from the archives...');
-    try {
-      const res = await fetch(`http://localhost:3001/api/delete-blog/${editingBlog.id}`, {
-        method: 'DELETE'
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStatus('Purged successfully.');
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        setStatus('Archived successfully.');
+        fetchStats();
+        setTimeout(() => setStatus(''), 3000);
       } else {
         setStatus('Error: ' + data.message);
       }
@@ -98,20 +91,80 @@ Begin your journey here...`);
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you certain you wish to purge "${editingBlog.title}" from the archives?`)) return;
+    setStatus('Purging...');
+    try {
+      const res = await fetch(`http://localhost:3001/api/delete-blog/${editingBlog.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setStatus('Purged.');
+        window.location.reload();
+      }
+    } catch (e) { setStatus('Failed to purge.'); }
+  };
+
+  const handleGitCommit = async () => {
+    const msg = window.prompt("Enter a message for the archive history:", "Reflection committed: " + (editingBlog?.title || "New Entry"));
+    if (!msg) return;
+
+    setStatus('Merging with the firmament...');
+    try {
+      const res = await fetch('http://localhost:3001/api/admin/git-commit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatus('Successfully merged into the archives.');
+        setTimeout(() => setStatus(''), 3000);
+      } else {
+        setStatus('Error: ' + data.message);
+      }
+    } catch (e) {
+      setStatus('Git operation failed.');
+    }
+  };
+
   return (
     <div className="admin-dashboard animate-in">
       <div className="admin-header">
         <button className="article-back" onClick={onBack}>← RETURN TO SANCTUARY</button>
-        <h1>ADMIN PORTAL</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '20px' }}>
+          <div>
+            <h1>ADMIN PORTAL</h1>
+            <button className="cta-secondary" style={{ marginTop: '10px', fontSize: '0.6rem', padding: '10px 20px' }} onClick={handleGitCommit}>
+              COMMIT TO FIRMAMENT (GIT)
+            </button>
+          </div>
+          <div className="admin-nav-tabs">
+            <button className={`admin-tab ${view === 'archives' ? 'active' : ''}`} onClick={() => setView('archives')}>ARCHIVES</button>
+            <button className={`admin-tab ${view === 'subscribers' ? 'active' : ''}`} onClick={() => setView('subscribers')}>SUBSCRIBERS</button>
+          </div>
+        </div>
       </div>
 
       <div className="admin-layout">
-        {/* Sidebar: List */}
+        {/* Sidebar */}
         <div className="admin-sidebar-list">
           <button className="cta-primary" style={{ width: '100%', marginBottom: '30px' }} onClick={startNew}>
             NEW REFLECTION
           </button>
-          <h3>EXISTING ARCHIVES</h3>
+          
+          <div className="admin-stats-box">
+            <h3>SANCTUARY STATS</h3>
+            <div className="stat-item">
+              <span className="stat-count">{appStats.subscribers.length}</span>
+              <span className="stat-label">SOULS JOINED</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-count">{Object.values(appStats.likes).reduce((a, b) => a + b, 0)}</span>
+              <span className="stat-label">TOTAL APPRECIATION</span>
+            </div>
+          </div>
+
+          <h3>EXISTING REFLECTIONS</h3>
           <div className="admin-posts-grid">
             {blogs.map(blog => (
               <div key={blog.id} className={`admin-post-item ${editingBlog?.id === blog.id ? 'active' : ''}`} onClick={() => editPost(blog)}>
@@ -122,70 +175,110 @@ Begin your journey here...`);
           </div>
         </div>
 
-        {/* Main: Editor */}
+        {/* Main Area */}
         <div className="admin-editor-area">
-          <div className="admin-form-grid">
-            <div className="form-group">
-              <label>Unique ID (no spaces)</label>
-              <input type="text" value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} disabled={editingBlog} />
-            </div>
-            <div className="form-group">
-              <label>Title</label>
-              <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label>Author</label>
-              <input type="text" value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label>Category</label>
-              <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                <option value="GOD">GOD</option>
-                <option value="LOVE">LOVE</option>
-                <option value="LIFE">LIFE</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Date String</label>
-              <input type="text" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-            </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label>Summary</label>
-              <textarea value={formData.summary} onChange={e => setFormData({...formData, summary: e.target.value})} rows="2" />
-            </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label>Preview Image URL (SVG/PNG)</label>
-              <input type="text" value={formData.previewImageUrl} onChange={e => setFormData({...formData, previewImageUrl: e.target.value})} />
-            </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label>Social Share Image URL (PNG required for X/Reddit)</label>
-              <input type="text" value={formData.socialImage} onChange={e => setFormData({...formData, socialImage: e.target.value})} />
-            </div>
-          </div>
-
-          <div className="markdown-editor-container">
-            <label>Markdown Content</label>
-            <textarea 
-              className="markdown-textarea" 
-              value={content} 
-              onChange={e => setContent(e.target.value)} 
-              placeholder="# Write your reflection..."
-            />
-          </div>
-
-          <div className="admin-actions">
-            <div className="status-msg">{status}</div>
-            <div className="admin-action-buttons">
-              {editingBlog && (
-                <button className="cta-delete" onClick={handleDelete}>
-                  PURGE REFLECTION
+          {view === 'subscribers' ? (
+            <div className="subscribers-view animate-in">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+                <div>
+                  <h2>Mailing List</h2>
+                  <p style={{ opacity: 0.6 }}>The following souls have requested to receive the Divine Letter.</p>
+                </div>
+                <button className="cta-secondary" onClick={() => {
+                  const csv = [
+                    ['Email', 'Date Joined'],
+                    ...appStats.subscribers.map(s => [s.email, s.date])
+                  ].map(e => e.join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'sanctuary-subscribers.csv';
+                  a.click();
+                }}>
+                  EXPORT CSV
                 </button>
-              )}
-              <button className="cta-primary commit-btn" onClick={handleCommit}>
-                COMMIT CHANGES TO ARCHIVE
-              </button>
+              </div>
+              <div className="subscribers-table">
+                <div className="table-header">
+                  <span>EMAIL ADDRESS</span>
+                  <span>DATE JOINED</span>
+                </div>
+                {appStats.subscribers.map((sub, i) => (
+                  <div key={i} className="table-row">
+                    <span className="sub-email">{sub.email}</span>
+                    <span className="sub-date">{new Date(sub.date).toLocaleDateString()}</span>
+                  </div>
+                ))}
+                {appStats.subscribers.length === 0 && <p style={{ padding: '40px', textAlign: 'center', opacity: 0.3 }}>No subscribers yet.</p>}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="admin-form-grid">
+                <div className="form-group">
+                  <label>Unique ID (no spaces)</label>
+                  <input type="text" value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} disabled={editingBlog} />
+                </div>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Author</label>
+                  <input type="text" value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Category</label>
+                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                    <option value="GOD">GOD</option>
+                    <option value="LOVE">LOVE</option>
+                    <option value="LIFE">LIFE</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Date String</label>
+                  <input type="text" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+                </div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Summary</label>
+                  <textarea value={formData.summary} onChange={e => setFormData({...formData, summary: e.target.value})} rows="2" />
+                </div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Preview Image URL (SVG/PNG)</label>
+                  <input type="text" value={formData.previewImageUrl} onChange={e => setFormData({...formData, previewImageUrl: e.target.value})} />
+                </div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Social Share Image URL (PNG required for X/Reddit)</label>
+                  <input type="text" value={formData.socialImage} onChange={e => setFormData({...formData, socialImage: e.target.value})} />
+                </div>
+              </div>
+
+              <div className="markdown-editor-container">
+                <label>Markdown Content</label>
+                <textarea 
+                  className="markdown-textarea" 
+                  value={content} 
+                  onChange={e => setContent(e.target.value)} 
+                  placeholder="# Write your reflection..."
+                />
+              </div>
+
+              <div className="admin-actions">
+                <div className="status-msg">{status}</div>
+                <div className="admin-action-buttons">
+                  {editingBlog && (
+                    <button className="cta-delete" onClick={handleDelete}>
+                      PURGE REFLECTION
+                    </button>
+                  )}
+                  <button className="cta-primary commit-btn" onClick={handleCommit}>
+                    COMMIT CHANGES TO ARCHIVE
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

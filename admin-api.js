@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,12 @@ app.use(bodyParser.json());
 
 const BLOGS_DATA_PATH = path.join(__dirname, 'src', 'blogsData.js');
 const BLOGS_DIR = path.join(__dirname, 'public', 'blogs');
+const APP_DATA_PATH = path.join(__dirname, 'src', 'appData.json');
+
+// Ensure appData.json exists
+if (!fs.existsSync(APP_DATA_PATH)) {
+  fs.writeFileSync(APP_DATA_PATH, JSON.stringify({ subscribers: [], likes: {} }, null, 2));
+}
 
 // Helper to update blogsData.js
 const updateBlogsDataJS = (blogs) => {
@@ -23,6 +30,68 @@ const updateBlogsDataJS = (blogs) => {
 `;
   fs.writeFileSync(BLOGS_DATA_PATH, content, 'utf8');
 };
+
+// API: Subscribe to Newsletter
+app.post('/api/subscribe', (req, res) => {
+  const { email } = req.body;
+  try {
+    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
+    if (!data.subscribers.some(s => s.email === email)) {
+      data.subscribers.push({ email, date: new Date().toISOString() });
+      fs.writeFileSync(APP_DATA_PATH, JSON.stringify(data, null, 2));
+    }
+    res.json({ success: true, message: 'Welcome to the sanctuary.' });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// API: Like a Post
+app.post('/api/like', (req, res) => {
+  const { id } = req.body;
+  try {
+    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
+    data.likes[id] = (data.likes[id] || 0) + 1;
+    fs.writeFileSync(APP_DATA_PATH, JSON.stringify(data, null, 2));
+    res.json({ success: true, count: data.likes[id] });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// API: Get App Stats (Subscribers & Likes)
+app.get('/api/admin/stats', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// API: Public Stats (Just Likes)
+app.get('/api/stats', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(APP_DATA_PATH, 'utf8'));
+    res.json({ likes: data.likes });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// API: Git Commit
+app.post('/api/admin/git-commit', (req, res) => {
+  const { message } = req.body;
+  const commitMsg = message || 'Divine Reflection committed to archives';
+  
+  exec(`git add . && git commit -m "${commitMsg}"`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Git Error: ${error}`);
+      return res.status(500).json({ success: false, message: 'Git commit failed.' });
+    }
+    res.json({ success: true, message: 'Reflection successfully merged into the firmament.' });
+  });
+});
 
 // API: Save or Update Blog
 app.post('/api/save-blog', (req, res) => {

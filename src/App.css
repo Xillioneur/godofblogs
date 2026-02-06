@@ -1040,6 +1040,12 @@ body.dark-mode .feed-card.featured .card-image {
   margin-bottom: 40px;
 }
 
+.search-highlight {
+  background: var(--accent);
+  color: var(--primary-bg);
+  padding: 0 4px;
+}
+
 /* --- ACCESSIBILITY --- */
 img {
   max-width: 100%;
@@ -1098,6 +1104,40 @@ img {
   border: 1px solid var(--border-color);
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.admin-stats-box {
+  background: var(--accent);
+  color: var(--primary-bg);
+  padding: 20px;
+  margin-bottom: 40px;
+  border-radius: var(--card-radius);
+}
+
+.admin-stats-box h3 {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.stat-count {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: var(--font-serif);
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
 }
 
 .admin-post-item {
@@ -1211,6 +1251,75 @@ img {
 .commit-btn {
   padding: 25px 60px;
   font-size: 1rem;
+}
+
+/* --- ADMIN NAVIGATION & TABLES --- */
+.admin-nav-tabs {
+  display: flex;
+  gap: 20px;
+}
+
+.admin-tab {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 20px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.admin-tab.active {
+  background: var(--accent);
+  color: var(--primary-bg);
+  border-color: var(--accent);
+}
+
+.subscribers-view h2 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+
+.subscribers-table {
+  border: 1px solid var(--border-color);
+  background: var(--secondary-bg);
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  padding: 20px;
+  background: var(--accent);
+  color: var(--primary-bg);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-smooth);
+}
+
+.table-row:hover {
+  background: var(--accent-soft);
+}
+
+.sub-email {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.sub-date {
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
 
 /* --- ANIMATIONS & REVEALS --- */
@@ -1367,6 +1476,48 @@ img {
 .rss-icon-svg {
   width: 16px;
   height: 16px;
+}
+
+/* --- BREADCRUMBS --- */
+.breadcrumbs {
+  margin-bottom: 30px;
+}
+
+.breadcrumbs ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.breadcrumbs a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-main);
+}
+
+.breadcrumb-separator {
+  opacity: 0.3;
+}
+
+.breadcrumb-current {
+  color: var(--accent);
 }
 
 /* --- FOOTER --- */

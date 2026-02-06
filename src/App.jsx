@@ -156,6 +156,20 @@ const CategoryTabs = ({ activeCategory, setActiveCategory, searchQuery, setSearc
   );
 };
 
+const HighlightText = ({ text, highlight }) => {
+  if (!highlight.trim()) return <span>{text}</span>;
+  const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+  return (
+    <span>
+      {parts.map((part, i) => 
+        part.toLowerCase() === highlight.toLowerCase() ? 
+          <mark key={i} className="search-highlight">{part}</mark> : 
+          part
+      )}
+    </span>
+  );
+};
+
 const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle }) => (
   <div className="blog-feed">
     <CategoryTabs 
@@ -186,18 +200,24 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
                 <img src={blog.previewImageUrl} alt={blog.title} loading="lazy" />
                 {!isFeatured && <div className="card-category">{blog.category}</div>}
               </div>
-              <div className="card-body">
-                <div className="card-meta">
-                  <time className="card-date">{blog.date}</time>
-                  <span className="card-author">BY {blog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
-                  <span className="card-reading-time">4 MIN READ</span>
-                </div>
-                {isFeatured && <span className="card-category">{blog.category}</span>}
-                <h2 className="card-title">{blog.title}</h2>
-                <p className="card-excerpt">{blog.summary}</p>
-                <span className="read-more">CONTINUE READING →</span>
-              </div>
-            </article>
+                                              <div className="card-body">
+                                                <div className="card-meta">
+                                                  <time className="card-date">{blog.date}</time>
+                                                  <span className="card-author">BY {blog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
+                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="0.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                                    <span className="card-reading-time">{publicLikes[blog.id] || 0}</span>
+                                                  </div>
+                                                  <span className="card-reading-time">4 MIN READ</span>
+                                                </div>
+                                                {isFeatured && <span className="card-category">{blog.category}</span>}                                <h2 className="card-title">
+                                  <HighlightText text={blog.title} highlight={searchQuery} />
+                                </h2>
+                                <p className="card-excerpt">
+                                  <HighlightText text={blog.summary} highlight={searchQuery} />
+                                </p>
+                                <span className="read-more">CONTINUE READING →</span>
+                              </div>            </article>
           );
         })
       ) : (
@@ -211,11 +231,11 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
   </div>
 );
 
-const FloatingSacredCTA = ({ show }) => (
+const FloatingSacredCTA = ({ show, onLike }) => (
   <div className={`floating-cta ${show ? 'visible' : ''}`}>
     <span className="cta-text">JOIN THE SANCTUARY</span>
     <div className="cta-actions">
-      <button className="icon-btn" title="Like Reflection" onClick={() => alert("Peace be with you. Your appreciation is noted.")}>
+      <button className="icon-btn" title="Like Reflection" onClick={onLike}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
       <button className="icon-btn" title="Subscribe RSS" onClick={() => window.open('/feed.xml', '_blank')}>
@@ -228,7 +248,25 @@ const FloatingSacredCTA = ({ show }) => (
   </div>
 );
 
-const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, isDarkMode }) => {
+const Breadcrumbs = ({ paths }) => (
+  <nav className="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}>HOME</a></li>
+      {paths.map((p, i) => (
+        <li key={i}>
+          <span className="breadcrumb-separator">/</span>
+          {p.current ? (
+            <span className="breadcrumb-current" aria-current="page">{p.label.toUpperCase()}</span>
+          ) : (
+            <a href={p.url} onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', p.url); window.dispatchEvent(new PopStateEvent('popstate')); }}>{p.label.toUpperCase()}</a>
+          )}
+        </li>
+      ))}
+    </ol>
+  </nav>
+);
+
+const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isDarkMode }) => {
   const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
   const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
@@ -240,11 +278,16 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
   return (
     <article className="article-view animate-in">
       <div className="article-header">
+        <Breadcrumbs paths={[
+          { label: selectedBlog.category, url: `/?category=${selectedBlog.category}` },
+          { label: selectedBlog.title, current: true }
+        ]} />
         <button className="article-back" onClick={backToList}>← BACK TO JOURNAL</button>
         <div className="article-meta">
           <span className="article-category">{selectedBlog?.category}</span>
           <time>{selectedBlog?.date}</time>
           <span className="article-author">BY {selectedBlog?.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
+          <span className="reading-time">{publicLikes[selectedBlog.id] || 0} APPRECIATIONS</span>
           <span className="reading-time">{currentReadingTime} MIN READ</span>
         </div>
         <h1 className="article-title">{selectedBlog?.title}</h1>
@@ -262,7 +305,7 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
           <button className="sidebar-btn" onClick={() => shareArticle(selectedBlog)} title="Share">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           </button>
-          <button className="sidebar-btn" onClick={() => alert("Peace be with you. Your appreciation is noted.")} title="Sacred Appreciation">
+          <button className="sidebar-btn" onClick={onLike} title="Sacred Appreciation">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
           <button className="sidebar-btn" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Back to top">
@@ -360,18 +403,34 @@ const MissionSection = () => (
   </section>
 );
 
-const Newsletter = () => (
-  <section className="newsletter-section">
-    <div className="newsletter-inner">
-      <h2>The Divine Letter</h2>
-      <p>Join our sanctuary of readers and receive weekly reflections on truth, grace, and eternity directly in your inbox.</p>
-      <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-        <input type="email" placeholder="email@address.com" required />
-        <button type="submit">SUBSCRIBE</button>
-      </form>
-    </div>
-  </section>
-);
+const Newsletter = ({ onSubscribe }) => {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onSubscribe) onSubscribe(email);
+    setEmail('');
+  };
+
+  return (
+    <section className="newsletter-section">
+      <div className="newsletter-inner">
+        <h2>The Divine Letter</h2>
+        <p>Join our sanctuary of readers and receive weekly reflections on truth, grace, and eternity directly in your inbox.</p>
+        <form className="newsletter-form" onSubmit={handleSubmit}>
+          <input 
+            type="email" 
+            placeholder="email@address.com" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+          />
+          <button type="submit">SUBSCRIBE</button>
+        </form>
+      </div>
+    </section>
+  );
+};
 
 const FeaturedScripture = () => (
   <section className="featured-scripture-section animate-in">
@@ -427,6 +486,7 @@ const ChronicleOfLight = () => (
 const AboutView = ({ onBack }) => (
   <div className="article-view animate-in">
     <div className="article-header">
+      <Breadcrumbs paths={[{ label: 'ABOUT THE AUTHOR', current: true }]} />
       <button className="article-back" onClick={onBack}>← BACK TO JOURNAL</button>
       <h1 className="article-title">Willie Liwa Johnson</h1>
       <p className="hero-description" style={{ margin: '0 auto 40px auto' }}>Author, Explorer, and Servant of the Word.</p>
@@ -500,6 +560,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showAscend, setShowAscend] = useState(false);
   const [isNotFound, setIsNotFound] = useState(false);
+  const [publicLikes, setPublicLikes] = useState({});
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -555,7 +616,18 @@ function App() {
       setBlogs(blogsData);
       setFilteredBlogs(blogsData);
     }
+    fetchPublicStats();
   }, []);
+
+  const fetchPublicStats = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/stats');
+      const data = await res.json();
+      setPublicLikes(data.likes || {});
+    } catch (e) {
+      console.error("Failed to fetch public stats");
+    }
+  };
 
   // Filtering Logic
   useEffect(() => {
@@ -822,11 +894,46 @@ function App() {
     );
   }
 
+  const handleSubscribe = async (email) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Welcome to the sanctuary. You will be notified of new reflections.");
+      }
+    } catch (e) {
+      console.error("Subscription failed. Local API may not be running.");
+    }
+  };
+
+  const handleLike = async (id) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPublicLikes(prev => ({ ...prev, [id]: data.count }));
+      }
+    } catch (e) {
+      console.error("Like failed. Local API may not be running.");
+    }
+  };
+
   return (
     <div className="app-container">
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }}></div>
       
-      <FloatingSacredCTA show={showAscend && !selectedBlog} />
+      <FloatingSacredCTA 
+        show={showAscend && !selectedBlog} 
+        onLike={() => handleLike('global')} // Placeholder for global like
+      />
 
       <button className={`ascend-btn ${showAscend ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Ascend">
         ↑
@@ -867,7 +974,7 @@ function App() {
               <ChronicleOfLight />
             </div>
             <div className="reveal">
-              <Newsletter />
+              <Newsletter onSubscribe={handleSubscribe} />
             </div>
           </>
         ) : (
@@ -880,6 +987,7 @@ function App() {
             backToList={backToList}
             shareArticle={shareArticle}
             viewArticle={viewArticle}
+            onLike={() => handleLike(selectedBlog.id)}
             isDarkMode={isDarkMode}
           />
         )}
