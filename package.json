@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node generate-sitemap.js && vite",
+    "dev": "node generate-sitemap.js && node render-visuals.js && vite",
     "admin": "node admin-api.js",
-    "prebuild": "node generate-sitemap.js",
+    "render": "node render-visuals.js",
+    "prebuild": "node generate-sitemap.js && node render-visuals.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -18,7 +19,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^16.1.0"
+    "react-syntax-highlighter": "^16.1.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

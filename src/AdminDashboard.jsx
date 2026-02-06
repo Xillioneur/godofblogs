@@ -14,7 +14,7 @@ const AdminDashboard = ({ blogs, onBack }) => {
     summary: '',
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
     previewImageUrl: '/assets/covers/faith-math.svg',
-    socialImage: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1200&auto=format&fit=crop'
+    socialImage: '/assets/covers/main-cover.png'
   });
 
   const startNew = () => {
@@ -27,7 +27,7 @@ const AdminDashboard = ({ blogs, onBack }) => {
       summary: '',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
       previewImageUrl: '/assets/covers/faith-math.svg',
-      socialImage: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1200&auto=format&fit=crop'
+      socialImage: '/assets/covers/main-cover.png'
     });
     setContent(`# New Reflection
 

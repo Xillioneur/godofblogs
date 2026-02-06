@@ -582,7 +582,7 @@ function App() {
     const siteUrl = "https://willieliwajohnson.web.app";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
-    const defaultImage = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format&fit=crop";
+    const defaultImage = "https://willieliwajohnson.web.app/assets/covers/main-cover.png";
 
     if (selectedBlog) {
       const currentUrl = `${siteUrl}/?post=${selectedBlog.id}`;

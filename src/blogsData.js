@@ -8,7 +8,7 @@ export const blogs = [
     contentPath: "/blogs/mathematics-of-faith.md",
     date: "FEB 07, 2026",
     previewImageUrl: "/assets/covers/faith-math.svg",
-    socialImage: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/faith-math.png"
   },
   {
     id: "grace-of-new-beginnings",
@@ -19,7 +19,7 @@ export const blogs = [
     contentPath: "/blogs/grace-of-new-beginnings.md",
     date: "FEB 07, 2026",
     previewImageUrl: "/assets/covers/new-beginnings.svg",
-    socialImage: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/new-beginnings.png"
   },
   {
     id: "defense-of-light",
@@ -30,7 +30,7 @@ export const blogs = [
     contentPath: "/blogs/defense-of-light.md",
     date: "FEB 06, 2026",
     previewImageUrl: "/assets/covers/defense-light.svg",
-    socialImage: "https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/defense-light.png"
   },
   {
     id: "love-universal-language",
@@ -41,7 +41,7 @@ export const blogs = [
     contentPath: "/blogs/love-universal-language.md",
     date: "FEB 06, 2026",
     previewImageUrl: "/assets/covers/love-language.svg",
-    socialImage: "https://images.unsplash.com/photo-1516589174184-c685ca33324f?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/love-language.png"
   },
   {
     id: "divine-patience",
@@ -52,7 +52,7 @@ export const blogs = [
     contentPath: "/blogs/divine-patience.md",
     date: "FEB 05, 2026",
     previewImageUrl: "/assets/covers/patience.svg",
-    socialImage: "https://images.unsplash.com/photo-1490730141103-6ca27497640c?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/patience.png"
   },
   {
     id: "sovereignty-of-creator",
@@ -63,7 +63,7 @@ export const blogs = [
     contentPath: "/blogs/sovereignty-of-creator.md",
     date: "FEB 05, 2026",
     previewImageUrl: "/assets/covers/sovereignty.svg",
-    socialImage: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/sovereignty.png"
   },
   {
     id: "eternal-nature-of-love",
@@ -74,7 +74,7 @@ export const blogs = [
     contentPath: "/blogs/eternal-nature-of-love.md",
     date: "FEB 05, 2026",
     previewImageUrl: "/assets/covers/eternal-love.svg",
-    socialImage: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/eternal-love.png"
   },
   {
     id: "life-surrendered",
@@ -85,6 +85,6 @@ export const blogs = [
     contentPath: "/blogs/life-surrendered.md",
     date: "FEB 04, 2026",
     previewImageUrl: "/assets/covers/surrendered.svg",
-    socialImage: "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?q=80&w=1200&auto=format&fit=crop"
+    socialImage: "/assets/covers/surrendered.png"
   }
 ];
