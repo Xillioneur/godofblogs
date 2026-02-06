@@ -6,25 +6,16 @@ import './App.css'
 import { blogs as blogsData } from './blogsData'
 import AdminDashboard from './AdminDashboard'
 import { db } from './firebase'
-import { collection, addDoc, doc, updateDoc, increment, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, increment, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 
-// --- HELPER COMPONENTS (Moved outside to prevent re-mounting/focus loss) ---
+// --- HELPER COMPONENTS ---
 
 const GamerCross = ({ className = "gamer-cross-svg" }) => (
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Outer Glow / Halo */}
     <circle cx="50" cy="40" r="35" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" opacity="0.2" />
-    
-    {/* The Sword-Cross Blade */}
     <path d="M50 5 L56 15 L56 85 L50 95 L44 85 L44 15 Z" fill="currentColor" />
-    
-    {/* The Cross Guard (Hilt) */}
     <path d="M20 35 L80 35 L82 38 L80 43 L20 43 L18 38 Z" fill="currentColor" />
-    
-    {/* Central Core (Glow) */}
     <path d="M50 12 L52 18 L52 82 L50 88 L48 82 L48 18 Z" fill="rgba(255,255,255,0.3)" />
-    
-    {/* Angular Accents */}
     <path d="M35 35 L44 25" stroke="currentColor" strokeWidth="1" opacity="0.5" />
     <path d="M65 35 L56 25" stroke="currentColor" strokeWidth="1" opacity="0.5" />
   </svg>
@@ -66,7 +57,6 @@ const WordStack = () => {
   const handleFlip = () => {
     const nextCount = flipCount + 1;
     const nextWordIndex = (nextCount + 1) % scriptures.length;
-    
     setFlipCount(nextCount);
     setTimeout(() => {
       if (nextCount % 2 === 1) setFrontIndex(nextWordIndex);
@@ -79,18 +69,18 @@ const WordStack = () => {
       <div className="word-card-stack" style={{ transform: `rotateX(${flipCount * 180}deg)` }}>
         <div className="word-card front">
           <div className="scripture-container">
-            <span className={`dynamic-word ${scriptures[frontIndex].style}`}>
-              {scriptures[frontIndex].text}
+            <span className={`dynamic-word ${scriptures[frontIndex]?.style || ''}`}>
+              {scriptures[frontIndex]?.text}
             </span>
-            {scriptures[frontIndex].cite && <cite className="scripture-cite">{scriptures[frontIndex].cite}</cite>}
+            {scriptures[frontIndex]?.cite && <cite className="scripture-cite">{scriptures[frontIndex].cite}</cite>}
           </div>
         </div>
         <div className="word-card back">
           <div className="scripture-container">
-            <span className={`dynamic-word ${scriptures[backIndex].style}`}>
-              {scriptures[backIndex].text}
+            <span className={`dynamic-word ${scriptures[backIndex]?.style || ''}`}>
+              {scriptures[backIndex]?.text}
             </span>
-            {scriptures[backIndex].cite && <cite className="scripture-cite">{scriptures[backIndex].cite}</cite>}
+            {scriptures[backIndex]?.cite && <cite className="scripture-cite">{scriptures[backIndex].cite}</cite>}
           </div>
         </div>
       </div>
@@ -159,8 +149,7 @@ const CategoryTabs = ({ activeCategory, setActiveCategory, searchQuery, setSearc
 };
 
 const HighlightText = ({ text, highlight }) => {
-  if (!highlight.trim()) return <span>{text}</span>;
-  // Escape regex special characters to prevent crashes
+  if (!highlight || !highlight.trim()) return <span>{text}</span>;
   const safeHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const parts = text.split(new RegExp(`(${safeHighlight})`, 'gi'));
   return (
@@ -204,24 +193,26 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
                 <img src={blog.previewImageUrl} alt={blog.title} loading="lazy" />
                 {!isFeatured && <div className="card-category">{blog.category}</div>}
               </div>
-                                              <div className="card-body">
-                                                <div className="card-meta">
-                                                  <time className="card-date">{blog.date}</time>
-                                                  <span className="card-author">BY {blog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
-                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="0.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                                    <span className="card-reading-time">{publicLikes[blog.id] || 0}</span>
-                                                  </div>
-                                                  <span className="card-reading-time">4 MIN READ</span>
-                                                </div>
-                                                {isFeatured && <span className="card-category">{blog.category}</span>}                                <h2 className="card-title">
-                                  <HighlightText text={blog.title} highlight={searchQuery} />
-                                </h2>
-                                <p className="card-excerpt">
-                                  <HighlightText text={blog.summary} highlight={searchQuery} />
-                                </p>
-                                <span className="read-more">CONTINUE READING →</span>
-                              </div>            </article>
+              <div className="card-body">
+                <div className="card-meta">
+                  <time className="card-date">{blog.date}</time>
+                  <span className="card-author">BY {blog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="0.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span className="card-reading-time">{publicLikes?.[blog.id] || 0}</span>
+                  </div>
+                  <span className="card-reading-time">4 MIN READ</span>
+                </div>
+                {isFeatured && <span className="card-category">{blog.category}</span>}
+                <h2 className="card-title">
+                  <HighlightText text={blog.title} highlight={searchQuery} />
+                </h2>
+                <p className="card-excerpt">
+                  <HighlightText text={blog.summary} highlight={searchQuery} />
+                </p>
+                <span className="read-more">CONTINUE READING →</span>
+              </div>
+            </article>
           );
         })
       ) : (
@@ -235,12 +226,12 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
   </div>
 );
 
-const FloatingSacredCTA = ({ show, onLike }) => (
+const FloatingSacredCTA = ({ show, onLike, isLiked }) => (
   <div className={`floating-cta ${show ? 'visible' : ''}`}>
     <span className="cta-text">JOIN THE SANCTUARY</span>
     <div className="cta-actions">
-      <button className="icon-btn" title="Like Reflection" onClick={onLike}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <button className={`icon-btn ${isLiked ? 'active' : ''}`} title="Like Reflection" onClick={onLike}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
       <button className="icon-btn" title="Subscribe RSS" onClick={() => window.open('/feed.xml', '_blank')}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
@@ -256,13 +247,13 @@ const Breadcrumbs = ({ paths }) => (
   <nav className="breadcrumbs" aria-label="Breadcrumb">
     <ol>
       <li><a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}>HOME</a></li>
-      {paths.map((p, i) => (
+      {paths && paths.map((p, i) => (
         <li key={i}>
           <span className="breadcrumb-separator">/</span>
           {p.current ? (
-            <span className="breadcrumb-current" aria-current="page">{p.label.toUpperCase()}</span>
+            <span className="breadcrumb-current" aria-current="page">{p.label?.toUpperCase()}</span>
           ) : (
-            <a href={p.url} onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', p.url); window.dispatchEvent(new PopStateEvent('popstate')); }}>{p.label.toUpperCase()}</a>
+            <a href={p.url} onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', p.url); window.dispatchEvent(new PopStateEvent('popstate')); }}>{p.label?.toUpperCase()}</a>
           )}
         </li>
       ))}
@@ -270,7 +261,8 @@ const Breadcrumbs = ({ paths }) => (
   </nav>
 );
 
-const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isDarkMode, publicLikes }) => {
+const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadingTime, backToList, shareArticle, viewArticle, onLike, isLiked, isDarkMode, publicLikes }) => {
+  if (!selectedBlog) return null;
   const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
   const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
@@ -283,25 +275,25 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
     <article className="article-view animate-in">
       <div className="article-header">
         <Breadcrumbs paths={[
-          { label: selectedBlog.category, url: `/?category=${selectedBlog.category}` },
+          { label: selectedBlog.category, url: `/post/${selectedBlog.id}` }, // Adjusted for path logic
           { label: selectedBlog.title, current: true }
         ]} />
         <button className="article-back" onClick={backToList}>← BACK TO JOURNAL</button>
         <div className="article-meta">
-          <span className="article-category">{selectedBlog?.category}</span>
-          <time>{selectedBlog?.date}</time>
-          <span className="article-author">BY {selectedBlog?.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
-          <span className="reading-time">{publicLikes[selectedBlog.id] || 0} APPRECIATIONS</span>
+          <span className="article-category">{selectedBlog.category}</span>
+          <time>{selectedBlog.date}</time>
+          <span className="article-author">BY {selectedBlog.author?.toUpperCase() || 'WILLIE LIWA JOHNSON'}</span>
+          <span className="reading-time">{publicLikes?.[selectedBlog.id] || 0} APPRECIATIONS</span>
           <span className="reading-time">{currentReadingTime} MIN READ</span>
         </div>
-        <h1 className="article-title">{selectedBlog?.title}</h1>
+        <h1 className="article-title">{selectedBlog.title}</h1>
         <div className="article-actions">
           <button className="article-share" onClick={() => shareArticle(selectedBlog)}>SHARE REFLECTION</button>
         </div>
       </div>
       
       <div className="article-hero-image">
-        <img src={selectedBlog?.previewImageUrl} alt={selectedBlog?.title} />
+        <img src={selectedBlog.previewImageUrl} alt={selectedBlog.title} />
       </div>
 
       <div className="article-container">
@@ -309,8 +301,8 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
           <button className="sidebar-btn" onClick={() => shareArticle(selectedBlog)} title="Share">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           </button>
-          <button className="sidebar-btn" onClick={onLike} title="Sacred Appreciation">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <button className={`sidebar-btn ${isLiked ? 'active' : ''}`} onClick={onLike} title="Sacred Appreciation">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
           <button className="sidebar-btn" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Back to top">
             ↑
@@ -409,12 +401,28 @@ const MissionSection = () => (
 
 const Newsletter = ({ onSubscribe }) => {
   const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onSubscribe) onSubscribe(email);
+    if (onSubscribe) {
+      const success = await onSubscribe(email);
+      if (success) setSubscribed(true);
+    }
     setEmail('');
   };
+
+  if (subscribed) {
+    return (
+      <section className="newsletter-section">
+        <div className="newsletter-success reveal revealed">
+          <span className="checkmark-icon">✓</span>
+          <h2>Joined the Sanctuary</h2>
+          <p>Your soul is now connected to the Divine Letter. Peace be with you.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="newsletter-section">
@@ -503,25 +511,17 @@ const AboutView = ({ onBack }) => (
     <div className="article-container">
       <div className="article-content">
         <div className="reveal">
-          <p>
-            Welcome to <strong>God of Blogs</strong>. I am Willie Liwa Johnson, and this sanctuary is dedicated to the exploration of the Divine through the lens of human experience.
-          </p>
+          <p>Welcome to <strong>God of Blogs</strong>. I am Willie Liwa Johnson, and this sanctuary is dedicated to the exploration of the Divine through the lens of human experience.</p>
         </div>
         <div className="reveal">
           <h2>The Mission</h2>
-          <p>
-            In a world often fragmented by noise, I seek to build a bridge between logic and faith. Every reflection shared here is a pilgrimage toward clarity, grounded in the absolute truth of the Creator and the transformative power of Love.
-          </p>
+          <p>In a world often fragmented by noise, I seek to build a bridge between logic and faith. Every reflection shared here is a pilgrimage toward clarity, grounded in the absolute truth of the Creator and the transformative power of Love.</p>
         </div>
         <div className="reveal">
-          <blockquote>
-            "To live is to learn the language of the Infinite."
-          </blockquote>
+          <blockquote>"To live is to learn the language of the Infinite."</blockquote>
         </div>
         <div className="reveal">
-          <p>
-            Thank you for joining me on this journey. May these words serve as a light on your path, as they have on mine.
-          </p>
+          <p>Thank you for joining me on this journey. May these words serve as a light on your path, as they have on mine.</p>
         </div>
         <div className="reveal" style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid var(--border-color)' }}>
           <h3>CONNECT</h3>
@@ -570,18 +570,14 @@ function App() {
     try {
       const saved = localStorage.getItem('user_likes');
       return saved ? JSON.parse(saved) : {};
-    } catch (e) {
-      return {};
-    }
+    } catch (e) { return {}; }
   });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
       const savedTheme = localStorage.getItem('theme');
       return savedTheme === 'light' ? false : true;
-    } catch (e) {
-      return true;
-    }
+    } catch (e) { return true; }
   });
 
   // Theme Management
@@ -625,7 +621,7 @@ function App() {
     return () => {
       revealedElements.forEach(el => observer.unobserve(el));
     };
-  }, [selectedBlog, showAbout, filteredBlogs]);
+  }, [selectedBlog, showAbout, filteredBlogs, isNotFound]);
 
   // Initial Data Load
   useEffect(() => {
@@ -635,15 +631,18 @@ function App() {
     }
     
     // Real-time Likes Sync from Firestore
-    const unsub = onSnapshot(collection(db, "likes"), (snapshot) => {
-      const likesMap = {};
-      snapshot.forEach((doc) => {
-        likesMap[doc.id] = doc.data().count || 0;
+    try {
+      const unsub = onSnapshot(collection(db, "likes"), (snapshot) => {
+        const likesMap = {};
+        snapshot.forEach((doc) => {
+          likesMap[doc.id] = doc.data().count || 0;
+        });
+        setPublicLikes(likesMap);
       });
-      setPublicLikes(likesMap);
-    });
-
-    return () => unsub();
+      return () => unsub();
+    } catch (e) {
+      console.warn("Firestore sync unavailable.");
+    }
   }, []);
 
   // Filtering Logic
@@ -686,6 +685,7 @@ function App() {
     if (params.get('page') === 'about' || pathParts[1] === 'about') {
       setShowAbout(true);
       setSelectedBlog(null);
+      setIsNotFound(false);
       return;
     }
 
@@ -719,7 +719,6 @@ function App() {
 
     window.addEventListener('popstate', handlePopState);
     
-    // Check URL on load
     const blogId = params.get('post') || pathBlogId;
     if (blogId && blogs.length > 0 && !selectedBlog) {
       const blog = blogs.find(b => b.id === blogId);
@@ -735,10 +734,10 @@ function App() {
     const siteUrl = "https://godofblogs.xyz";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
-    const defaultImage = "https://godofblogs.xyz/assets/covers/main-cover.png";
+    const defaultImage = `${siteUrl}/assets/covers/main-cover.png`;
 
     if (selectedBlog) {
-      const currentUrl = `${siteUrl}/?post=${selectedBlog.id}`;
+      const currentUrl = `${siteUrl}/post/${selectedBlog.id}`;
       document.title = `${selectedBlog.title} | Willie Liwa Johnson`;
       updateMetaTag('description', selectedBlog.summary);
       updateMetaTag('og:title', selectedBlog.title);
@@ -750,7 +749,6 @@ function App() {
       updateMetaTag('twitter:image', selectedBlog.socialImage?.startsWith('http') ? selectedBlog.socialImage : `${siteUrl}${selectedBlog.socialImage || selectedBlog.previewImageUrl}`);
       updateCanonical(currentUrl);
 
-      // Inject JSON-LD
       setJsonLd([
         {
           "@context": "https://schema.org",
@@ -758,26 +756,15 @@ function App() {
           "headline": selectedBlog.title,
           "image": [selectedBlog.previewImageUrl],
           "datePublished": "2026-02-05T08:00:00+00:00",
-          "author": [{
-              "@type": "Person",
-              "name": "Willie Liwa Johnson",
-              "url": siteUrl
-            }]
+          "author": [{ "@type": "Person", "name": "Willie Liwa Johnson", "url": siteUrl }]
         },
         {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
-          "itemListElement": [{
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": siteUrl
-          },{
-            "@type": "ListItem",
-            "position": 2,
-            "name": selectedBlog.title,
-            "item": currentUrl
-          }]
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
+            { "@type": "ListItem", "position": 2, "name": selectedBlog.title, "item": currentUrl }
+          ]
         }
       ]);
     } else {
@@ -786,6 +773,7 @@ function App() {
       updateMetaTag('og:title', defaultTitle);
       updateMetaTag('og:description', defaultDesc);
       updateMetaTag('og:image', defaultImage);
+      updateMetaTag('og:url', siteUrl);
       updateMetaTag('twitter:title', defaultTitle);
       updateMetaTag('twitter:description', defaultDesc);
       updateMetaTag('twitter:image', defaultImage);
@@ -796,16 +784,13 @@ function App() {
         "@type": "WebSite",
         "name": "Willie Liwa Johnson",
         "url": siteUrl,
-        "author": {
-          "@type": "Person",
-          "name": "Willie Liwa Johnson"
-        }
+        "author": { "@type": "Person", "name": "Willie Liwa Johnson" }
       });
     }
   }, [selectedBlog]);
 
   const updateMetaTag = (name, content) => {
-    let el = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+    let el = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`) || document.querySelector(`meta[property="og:${name}"]`) || document.querySelector(`meta[name="twitter:${name}"]`);
     if (el) el.setAttribute('content', content);
   };
 
@@ -819,20 +804,17 @@ function App() {
     link.setAttribute("href", url);
   };
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && selectedBlog) backToList();
+      if (e.key === 'Escape' && (selectedBlog || showAbout)) backToList();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedBlog]);
+  }, [selectedBlog, showAbout]);
 
   const calculateReadingTime = (text) => {
     if (!text) return 0;
-    const wordsPerMinute = 200;
-    const noOfWords = text.split(/\s+/).length;
-    return Math.ceil(noOfWords / wordsPerMinute);
+    return Math.ceil(text.split(/\s+/).length / 200);
   };
 
   const fetchAndSetBlog = async (blog) => {
@@ -864,16 +846,12 @@ function App() {
     if (!blog) return;
     const shareUrl = `${window.location.origin}/post/${blog.id}`;
     const shareText = `Behold: ${blog.title} | Willie Liwa Johnson`;
-    
     if (navigator.share) {
       navigator.share({ title: blog.title, text: shareText, url: shareUrl });
     } else {
       const choice = confirm("Share this reflection?\n\nOK for X.com\nCancel for Reddit");
-      if (choice) {
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-      } else {
-        window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(blog.title)}`, '_blank');
-      }
+      if (choice) window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+      else window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(blog.title)}`, '_blank');
     }
   };
 
@@ -913,65 +891,31 @@ function App() {
 
   const handleSubscribe = async (email) => {
     try {
-      await addDoc(collection(db, "subscribers"), {
-        email,
-        date: new Date().toISOString()
-      });
-      alert("Welcome to the sanctuary. You will be notified of new reflections.");
-    } catch (e) {
-      console.error("Subscription failed:", e);
-    }
+      await addDoc(collection(db, "subscribers"), { email, date: new Date().toISOString() });
+      return true;
+    } catch (e) { return false; }
   };
 
   const handleLike = async (id) => {
-    // Local visual feedback
-    if (userLikes[id]) return; // One like per session/user for now
-    
+    if (userLikes[id]) return;
     const newUserLikes = { ...userLikes, [id]: true };
     setUserLikes(newUserLikes);
-    try {
-      localStorage.setItem('user_likes', JSON.stringify(newUserLikes));
-    } catch (e) {
-      console.warn("Storage restricted.");
-    }
-
-    // Optimistic update
+    try { localStorage.setItem('user_likes', JSON.stringify(newUserLikes)); } catch (e) {}
     setPublicLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-
     try {
       const likeRef = doc(db, "likes", id);
       const likeDoc = await getDoc(likeRef);
-      
-      if (likeDoc.exists()) {
-        await updateDoc(likeRef, { count: increment(1) });
-      } else {
-        await setDoc(likeRef, { count: 1 });
-      }
-    } catch (e) {
-      console.error("Like failed:", e);
-    }
+      if (likeDoc.exists()) await updateDoc(likeRef, { count: increment(1) });
+      else await setDoc(likeRef, { count: 1 });
+    } catch (e) {}
   };
 
   return (
     <div className="app-container">
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }}></div>
-      
-      <FloatingSacredCTA 
-        show={showAscend && !selectedBlog} 
-        onLike={() => handleLike('global')} // Placeholder for global like
-      />
-
-      <button className={`ascend-btn ${showAscend ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Ascend">
-        ↑
-      </button>
-
-      <Header 
-        isDarkMode={isDarkMode} 
-        setIsDarkMode={setIsDarkMode} 
-        backToList={backToList}
-        onAbout={handleAbout}
-      />
-      
+      <FloatingSacredCTA show={showAscend && !selectedBlog} onLike={() => handleLike('global')} isLiked={userLikes['global']} />
+      <button className={`ascend-btn ${showAscend ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Ascend">↑</button>
+      <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} backToList={backToList} onAbout={handleAbout} />
       <main className="main-content">
         {isNotFound ? (
           <NotFoundView onBack={backToList} />
@@ -981,61 +925,26 @@ function App() {
           <>
             <Hero setActiveCategory={setActiveCategory} />
             <div className="reveal">
-              <BlogFeed 
-                filteredBlogs={filteredBlogs}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                viewArticle={viewArticle}
-                publicLikes={publicLikes}
-              />
+              <BlogFeed filteredBlogs={filteredBlogs} activeCategory={activeCategory} setActiveCategory={setActiveCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewArticle={viewArticle} publicLikes={publicLikes} />
             </div>
-            <div className="reveal">
-              <FeaturedScripture />
-            </div>
-            <div className="reveal">
-              <MissionSection />
-            </div>
-            <div className="reveal">
-              <ChronicleOfLight />
-            </div>
-            <div className="reveal">
-              <Newsletter onSubscribe={handleSubscribe} />
-            </div>
+            <div className="reveal"><FeaturedScripture /></div>
+            <div className="reveal"><MissionSection /></div>
+            <div className="reveal"><ChronicleOfLight /></div>
+            <div className="reveal"><Newsletter onSubscribe={handleSubscribe} /></div>
           </>
         ) : (
-          <ArticleView 
-            selectedBlog={selectedBlog}
-            blogs={blogs}
-            blogContent={blogContent}
-            isLoading={isLoading}
-            currentReadingTime={currentReadingTime}
-            backToList={backToList}
-            shareArticle={shareArticle}
-            viewArticle={viewArticle}
-            onLike={() => handleLike(selectedBlog.id)}
-            isDarkMode={isDarkMode}
-            publicLikes={publicLikes}
-          />
+          <ArticleView selectedBlog={selectedBlog} blogs={blogs} blogContent={blogContent} isLoading={isLoading} currentReadingTime={currentReadingTime} backToList={backToList} shareArticle={shareArticle} viewArticle={viewArticle} onLike={() => handleLike(selectedBlog.id)} isLiked={userLikes[selectedBlog.id]} isDarkMode={isDarkMode} publicLikes={publicLikes} />
         )}
       </main>
-
       <footer className="professional-footer">
         <div className="footer-inner">
           <div className="footer-brand">
             <GamerCross className="footer-logo-svg" />
             <span className="brand-name">WILLIE LIWA JOHNSON</span>
             <div className="footer-socials">
-              <a href="#" className="social-icon" title="X (Twitter)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
-              </a>
-              <a href="#" className="social-icon" title="Reddit">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-              </a>
-              <a href="#" className="social-icon" title="Instagram">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-              </a>
+              <a href="#" className="social-icon" title="X (Twitter)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg></a>
+              <a href="#" className="social-icon" title="Reddit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg></a>
+              <a href="#" className="social-icon" title="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
             </div>
             <p className="footer-quote" style={{ marginTop: '20px' }}>"Let your light so shine before men..."</p>
           </div>
@@ -1046,12 +955,7 @@ function App() {
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('GOD'); }}>God</a></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('LIFE'); }}>Life</a></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveCategory('LOVE'); }}>Love</a></li>
-              <li>
-                <a href="/feed.xml" className="rss-link-item" target="_blank">
-                  <svg className="rss-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-                  RSS FEED
-                </a>
-              </li>
+              <li><a href="/feed.xml" className="rss-link-item" target="_blank"><svg className="rss-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>RSS FEED</a></li>
             </ul>
           </div>
           <div className="footer-links">

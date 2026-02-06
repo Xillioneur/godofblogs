@@ -655,6 +655,14 @@ body.dark-mode .feed-card.featured .card-image {
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
+.sidebar-btn.active {
+  background: #ff3b30;
+  border-color: #ff3b30;
+  color: #fff;
+  animation: heartPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: scale(1.1);
+}
+
 .sidebar-btn svg {
   width: 20px;
   height: 20px;
@@ -1458,6 +1466,39 @@ img {
   background: var(--accent);
   color: var(--primary-bg);
   border-color: var(--accent);
+}
+
+.icon-btn.active {
+  background: #ff3b30;
+  border-color: #ff3b30;
+  color: #fff;
+  animation: heartPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1.1); }
+}
+
+.newsletter-success {
+  padding: 40px;
+  background: var(--accent-soft);
+  border: 1px dashed var(--border-color);
+  animation: fadeIn 0.8s ease;
+}
+
+.newsletter-success h2 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.checkmark-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 20px;
+  color: #34c759;
 }
 
 /* --- RSS BRANDING --- */
