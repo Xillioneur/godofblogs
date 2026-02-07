@@ -774,16 +774,20 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [blogs]);
 
-  // SEO Update
+  // SEO & Analytics Update
   useEffect(() => {
     const siteUrl = "https://godofblogs.xyz";
     const defaultTitle = "Willie Liwa Johnson | Divine Reflections";
     const defaultDesc = "A professional journal dedicated to the exploration of Divine Love, the complexities of Life, and the Sovereignty of God.";
     const defaultImage = `${siteUrl}/assets/covers/main-cover.png`;
 
+    let pageTitle = defaultTitle;
+    let pagePath = window.location.pathname + window.location.search;
+
     if (selectedBlog) {
       const currentUrl = `${siteUrl}/post/${selectedBlog.id}`;
-      document.title = `${selectedBlog.title} | Willie Liwa Johnson`;
+      pageTitle = `${selectedBlog.title} | Willie Liwa Johnson`;
+      document.title = pageTitle;
       updateMetaTag('description', selectedBlog.summary);
       updateMetaTag('og:title', selectedBlog.title);
       updateMetaTag('og:description', selectedBlog.summary);
@@ -832,7 +836,15 @@ function App() {
         "author": { "@type": "Person", "name": "Willie Liwa Johnson" }
       });
     }
-  }, [selectedBlog]);
+
+    // Google Analytics Page View
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-M6RXRV36V1', {
+        page_title: pageTitle,
+        page_path: pagePath
+      });
+    }
+  }, [selectedBlog, showAbout, showAdmin]);
 
   const updateMetaTag = (name, content) => {
     let el = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`) || document.querySelector(`meta[property="og:${name}"]`) || document.querySelector(`meta[name="twitter:${name}"]`);
