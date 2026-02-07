@@ -8,6 +8,7 @@ import AdminDashboard from './AdminDashboard'
 import { db } from './firebase'
 import { collection, addDoc, doc, updateDoc, increment, getDoc, onSnapshot, setDoc, query, where, getDocs } from "firebase/firestore";
 import { logEvent, logPageView } from './analytics';
+import SelectToShare from './SelectToShare';
 
 // --- HELPER COMPONENTS ---
 
@@ -89,7 +90,7 @@ const WordStack = () => {
   );
 };
 
-const Hero = ({ setActiveCategory }) => (
+const Hero = ({ setActiveCategory, viewArticle, blogs }) => (
   <section className="professional-hero">
     <div className="hero-content">
       <span className="hero-tag">EST. 2026</span>
@@ -106,13 +107,12 @@ const Hero = ({ setActiveCategory }) => (
           BEGIN THE PILGRIMAGE
         </button>
         <button className="cta-secondary" onClick={() => {
-          setActiveCategory('GOD');
-          setTimeout(() => {
-            const feed = document.querySelector('.blog-feed');
-            feed?.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
+          if (blogs && blogs.length > 0) {
+            const random = blogs[Math.floor(Math.random() * blogs.length)];
+            viewArticle(random);
+          }
         }}>
-          EXPLORE THE DIVINE
+          GUIDE MY PATH
         </button>
       </div>
     </div>
@@ -164,7 +164,17 @@ const HighlightText = ({ text, highlight }) => {
   );
 };
 
-const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle, publicLikes }) => (
+const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewArticle, publicLikes }) => {
+  const [readPosts, setReadPosts] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('read_posts') || '[]');
+      setReadPosts(saved);
+    } catch (e) {}
+  }, []);
+
+  return (
   <div className="blog-feed">
     <CategoryTabs 
       activeCategory={activeCategory} 
@@ -184,6 +194,8 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
       {filteredBlogs.length > 0 ? (
         filteredBlogs.map((blog, index) => {
           const isFeatured = index === 0 && activeCategory === 'ALL' && !searchQuery;
+          const isRead = readPosts.includes(blog.id);
+          
           return (
             <article 
               key={blog.id} 
@@ -202,7 +214,7 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" opacity="0.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     <span className="card-reading-time">{publicLikes?.[blog.id] || 0}</span>
                   </div>
-                  <span className="card-reading-time">4 MIN READ</span>
+                  {isRead && <span className="witnessed-badge">✓ WITNESSED</span>}
                 </div>
                 {isFeatured && <span className="card-category">{blog.category}</span>}
                 <h2 className="card-title">
@@ -226,6 +238,7 @@ const BlogFeed = ({ filteredBlogs, activeCategory, setActiveCategory, searchQuer
     </div>
   </div>
 );
+};
 
 const FloatingSacredCTA = ({ show, onLike, isLiked }) => (
   <div className={`floating-cta ${show ? 'visible' : ''}`}>
@@ -298,6 +311,20 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
     return () => document.body.classList.remove('zen-mode');
   }, [zenMode]);
 
+  // Reading History Logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const currentRead = JSON.parse(localStorage.getItem('read_posts') || '[]');
+        if (!currentRead.includes(selectedBlog.id)) {
+          const updated = [...currentRead, selectedBlog.id];
+          localStorage.setItem('read_posts', JSON.stringify(updated));
+        }
+      } catch (e) {}
+    }, 5000); // Mark as read after 5 seconds
+    return () => clearTimeout(timer);
+  }, [selectedBlog]);
+
   const currentIndex = blogs.findIndex(b => b.id === selectedBlog.id);
   const prevPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
   const nextPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
@@ -308,6 +335,7 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
 
   return (
     <article className="article-view animate-in">
+      <SelectToShare />
       <button className="zen-toggle" onClick={() => setZenMode(!zenMode)}>
         {zenMode ? 'EXIT ZEN MODE' : 'ZEN MODE'}
       </button>
@@ -495,14 +523,85 @@ const FeaturedScripture = () => (
   </section>
 );
 
-const ChronicleOfLight = () => (
+const VitalityMatrix = ({ likes, subscriberCount, visitCount, blogCount, latestDate }) => {
+  // Engagement Rate: (Likes + Subs) / Visits
+  const totalEngagements = Object.values(likes).reduce((a, b) => a + b, 0) + subscriberCount;
+  const engagementRate = visitCount > 0 ? Math.min(Math.round((totalEngagements / visitCount) * 100), 100) : 0;
+
+  // Freshness: Days since last post (100% if < 7 days, scales down)
+  const lastPost = new Date(latestDate);
+  const daysSince = Math.floor((new Date() - lastPost) / (1000 * 60 * 60 * 24));
+  const freshness = Math.max(100 - (daysSince * 2), 0);
+
+  // Depth: Progress toward 50 reflections goal
+  const depth = Math.min(Math.round((blogCount / 50) * 100), 100);
+
+  // Wisdom Dispersion: Progress toward 1,000,000 words goal
+  // Assuming 850 words avg per post. Total words = visits * avg words.
+  const totalWords = visitCount * 850;
+  const dispersion = Math.min(Math.round((totalWords / 1000000) * 100), 100);
+
+  const pillars = [
+    { name: "SOUL RESONANCE", value: engagementRate, label: "Engagement", desc: `${totalEngagements} interactions from ${visitCount} visits` },
+    { name: "REVELATION DEPTH", value: depth, label: "Archive Progress", desc: `${blogCount} of 50 handwritten reflections` },
+    { name: "MISSION VELOCITY", value: freshness, label: "Freshness", desc: daysSince <= 0 ? "Published today" : `${daysSince} days since last revelation` },
+    { name: "WISDOM DISPERSION", value: dispersion, label: "Community Challenge", desc: `${(totalWords / 1000).toFixed(1)}K of 1M words witnessed` }
+  ];
+
+  return (
+    <div className="vitality-matrix reveal">
+      <div className="matrix-status">
+        <div className="status-pulse"></div>
+        SYNC: LIVE
+      </div>
+      {pillars.map(p => (
+        <div key={p.name} className="vitality-pillar">
+          <div className="pillar-header">
+            <span className="pillar-name">{p.name}</span>
+            <span className="pillar-value">{p.value}%</span>
+          </div>
+          <div className="bar-container">
+            <div className="bar-fill" style={{ width: `${p.value}%` }}>
+              <div className="bar-glow"></div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '10px' }}>
+            <span className="pillar-name" style={{ fontSize: '0.55rem', opacity: 0.8, color: 'var(--accent)' }}>{p.label.toUpperCase()}</span>
+            <span className="pillar-name" style={{ fontSize: '0.45rem', opacity: 0.4, letterSpacing: '0.05em' }}>{p.desc.toUpperCase()}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ChronicleOfLight = ({ likes, subscriberCount, visitCount, blogCount, latestDate }) => (
   <section className="chronicle-section animate-in">
     <div className="section-header">
       <h2>CHRONICLE OF LIGHT</h2>
-      <p>The evolving digital journey of this sanctuary.</p>
+      <p>The evolving digital journey and technical architecture of this sanctuary.</p>
     </div>
+
+    <VitalityMatrix 
+      likes={likes} 
+      subscriberCount={subscriberCount} 
+      visitCount={visitCount} 
+      blogCount={blogCount}
+      latestDate={latestDate}
+    />
+
     <div className="chronicle-list">
-      <div className="update-entry">
+      <div className="update-entry reveal">
+        <div className="update-meta">
+          <span className="update-date">FEB 07</span>
+          <div className="update-dot"></div>
+        </div>
+        <div className="update-content">
+          <h4>PHASE 5: THE CLOUD VAULT</h4>
+          <p>Integrated Google Cloud Firestore and Firebase Auth. The sanctuary is now serverless, secure, and data-intelligent with real-time community synchronization.</p>
+        </div>
+      </div>
+      <div className="update-entry reveal">
         <div className="update-meta">
           <span className="update-date">FEB 07</span>
           <div className="update-dot"></div>
@@ -512,17 +611,17 @@ const ChronicleOfLight = () => (
           <p>The Admin Portal is now live. We have established a direct bridge between the local editor and the digital archives, ensuring every reflection is permanent and pristine.</p>
         </div>
       </div>
-      <div className="update-entry">
+      <div className="update-entry reveal">
         <div className="update-meta">
           <span className="update-date">FEB 06</span>
           <div className="update-dot"></div>
         </div>
         <div className="update-content">
           <h4>PHASE 3: THE GAMER'S CROSS</h4>
-          <p>Unified the platform identity with the new Sword-Cross logo. A modern symbol for an eternal message.</p>
+          <p>Unified the platform identity with the new Sword-Cross logo. A modern symbol for an eternal message, bridging tech and truth.</p>
         </div>
       </div>
-      <div className="update-entry">
+      <div className="update-entry reveal">
         <div className="update-meta">
           <span className="update-date">FEB 05</span>
           <div className="update-dot"></div>
@@ -608,6 +707,7 @@ function App() {
   const [isNotFound, setIsNotFound] = useState(false);
   const [publicLikes, setPublicLikes] = useState({});
   const [subscriberCount, setSubscriberCount] = useState(0);
+  const [visitCount, setVisitCount] = useState(0);
   const [userLikes, setUserLikes] = useState(() => {
     try {
       const saved = localStorage.getItem('user_likes');
@@ -683,7 +783,7 @@ function App() {
       setFilteredBlogs(blogsData);
     }
     
-    // Real-time Likes Sync from Firestore
+    // Real-time Likes & Engagement Sync from Firestore
     try {
       const unsubLikes = onSnapshot(collection(db, "likes"), (snapshot) => {
         const likesMap = {};
@@ -697,9 +797,26 @@ function App() {
         setSubscriberCount(snapshot.size);
       });
 
+      const unsubStats = onSnapshot(doc(db, "site_stats", "global"), (doc) => {
+        if (doc.exists()) setVisitCount(doc.data().visits || 0);
+      });
+
+      // Increment Visit Count (Session based)
+      const trackVisit = async () => {
+        if (!sessionStorage.getItem('visited')) {
+          const statsRef = doc(db, "site_stats", "global");
+          const statsDoc = await getDoc(statsRef);
+          if (statsDoc.exists()) await updateDoc(statsRef, { visits: increment(1) });
+          else await setDoc(statsRef, { visits: 1 });
+          sessionStorage.setItem('visited', 'true');
+        }
+      };
+      trackVisit();
+
       return () => {
         unsubLikes();
         unsubSubs();
+        unsubStats();
       };
     } catch (e) {
       console.warn("Firestore sync unavailable.");
@@ -1013,11 +1130,12 @@ function App() {
           <NotFoundView onBack={backToList} />
         ) : showAbout ? (
           <AboutView onBack={backToList} />
-        ) : !selectedBlog ? (
-          <>
-            <Hero setActiveCategory={setActiveCategory} />
-            <div className="reveal">
-              <BlogFeed filteredBlogs={filteredBlogs} activeCategory={activeCategory} setActiveCategory={setActiveCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewArticle={viewArticle} publicLikes={publicLikes} />
+                ) : !selectedBlog ? (
+                  <>
+                    <Hero setActiveCategory={setActiveCategory} viewArticle={viewArticle} blogs={blogs} />
+                    <div className="reveal">
+                      <BlogFeed 
+                        filteredBlogs={filteredBlogs} activeCategory={activeCategory} setActiveCategory={setActiveCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewArticle={viewArticle} publicLikes={publicLikes} />
             </div>
                         <div className="reveal">
                           <FeaturedScripture />
@@ -1026,7 +1144,15 @@ function App() {
                         <div className="reveal">
                           <MissionSection />
                         </div>
-            <div className="reveal"><ChronicleOfLight /></div>
+                        <div className="reveal">
+                          <ChronicleOfLight 
+                            likes={publicLikes} 
+                            subscriberCount={subscriberCount} 
+                            visitCount={visitCount}
+                            blogCount={blogs.length}
+                            latestDate={blogs[0]?.date}
+                          />
+                        </div>
             <div className="reveal"><Newsletter onSubscribe={handleSubscribe} /></div>
           </>
         ) : (
