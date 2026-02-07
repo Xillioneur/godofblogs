@@ -7,6 +7,7 @@ import { blogs as blogsData } from './blogsData'
 import AdminDashboard from './AdminDashboard'
 import { db } from './firebase'
 import { collection, addDoc, doc, updateDoc, increment, getDoc, onSnapshot, setDoc, query, where, getDocs } from "firebase/firestore";
+import { logEvent, logPageView } from './analytics';
 
 // --- HELPER COMPONENTS ---
 
@@ -288,8 +289,12 @@ const ArticleView = ({ selectedBlog, blogs, blogContent, isLoading, currentReadi
   const [zenMode, setZenMode] = useState(false);
 
   useEffect(() => {
-    if (zenMode) document.body.classList.add('zen-mode');
-    else document.body.classList.remove('zen-mode');
+    if (zenMode) {
+      document.body.classList.add('zen-mode');
+      logEvent('toggle_zen_mode', { state: 'active', blog_id: selectedBlog.id });
+    } else {
+      document.body.classList.remove('zen-mode');
+    }
     return () => document.body.classList.remove('zen-mode');
   }, [zenMode]);
 
@@ -617,6 +622,17 @@ function App() {
     } catch (e) { return true; }
   });
 
+  // Analytics: Debounced Search Tracking
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.length > 2) {
+        logEvent('search', { search_term: searchQuery });
+      }
+    }, 2000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   // Theme Management
   useEffect(() => {
     if (isDarkMode) {
@@ -838,12 +854,7 @@ function App() {
     }
 
     // Google Analytics Page View
-    if (typeof window.gtag === 'function') {
-      window.gtag('config', 'G-M6RXRV36V1', {
-        page_title: pageTitle,
-        page_path: pagePath
-      });
-    }
+    logPageView(pageTitle, pagePath);
   }, [selectedBlog, showAbout, showAdmin]);
 
   const updateMetaTag = (name, content) => {
@@ -903,6 +914,9 @@ function App() {
     if (!blog) return;
     const shareUrl = `${window.location.origin}/post/${blog.id}`;
     const shareText = `Behold: ${blog.title} | Willie Liwa Johnson`;
+    
+    logEvent('share', { content_type: 'blog', item_id: blog.id });
+
     if (navigator.share) {
       navigator.share({ title: blog.title, text: shareText, url: shareUrl });
     } else {
@@ -953,10 +967,11 @@ function App() {
       
       if (!querySnapshot.empty) {
         alert("Your soul is already part of the sanctuary.");
-        return true; // Consider it a success as they are already subscribed
+        return true; 
       }
 
       await addDoc(collection(db, "subscribers"), { email, date: new Date().toISOString() });
+      logEvent('newsletter_signup', { method: 'form' });
       return true;
     } catch (e) { 
       console.error("Subscription failed:", e);
@@ -977,6 +992,8 @@ function App() {
     
     setPublicLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
     
+    logEvent('sacred_appreciation', { blog_id: id, count: currentCount + 1 });
+
     try {
       const likeRef = doc(db, "likes", id);
       const likeDoc = await getDoc(likeRef);
